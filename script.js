@@ -1,9 +1,10 @@
+let storyId=1;
 let storiesList=[];
 let inputBox =document.getElementById("storyInput");
 let button =document.getElementById("submitButton");
 let list= document.getElementById("storyList");
 let nameInput =document.getElementById("userName")
-let stroyId=1;
+
 
 
 button.addEventListener("click", function()
@@ -30,14 +31,17 @@ button.addEventListener("click", function()
     }
         
     
-    let fullStory = name + ":" + story;  
-    storiesList.push(fullStory);
-    console.log("After add:", storiesList);
+    let storyObject = {id: storyId, name:name, story:story };
+    storyId++;
+
+    storiesList.push(storyObject);
+    console.log("After add:", [...storiesList]);
 
     let listItem =document.createElement("li");
     let deleteButton = document.createElement("button")
 
-    listItem.textContent= fullStory;
+    listItem.textContent= storyObject.name + ":" + storyObject.story; //this is opening 
+    // the object box and extracting the name ans story attached to that id
     deleteButton.textContent = "DELETE"
 
 
@@ -50,14 +54,17 @@ button.addEventListener("click", function()
 
     {
             listItem.remove();
-            let index =storiesList.indexOf(fullStory);
+            let index =storiesList.findIndex(function(item){
+                return item.id===storyObject.id;
+            });
 
             if (index !==-1)
             {
                 storiesList.splice(index, 1);
             }
-            console.log("After delete:", storiesList);
-    });
+            
+            console.log("After delete:", [...storiesList]);
+   });
 
 
 

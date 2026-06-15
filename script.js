@@ -5,6 +5,7 @@ let storyInput =document.getElementById("storyInput");
 let submitButton =document.getElementById("submitButton");
 let list= document.getElementById("storyList");
 let nameInput =document.getElementById("userName");
+let charCounter = document.getElementById("charCounter");
 
 
 let savedStories = localStorage.getItem("storiesList");
@@ -38,17 +39,14 @@ submitButton.addEventListener("click", function()
     let story =storyInput.value.trim();
     let name =nameInput.value.trim();
 
+    
     let hasError = false;
 
-    if (name === "") {
-        nameInput.placeholder = "Name required";
-        hasError = true;
-    }
-
-    if (story === "") {
-        storyInput.placeholder = "Story required";
-        hasError = true;
-    }
+    if (name === "" || story === "") {
+    errorMessage.textContent =
+        "Please enter your name and story.";
+    hasError = true;
+}
 
     if (hasError) {
         return;
@@ -86,14 +84,24 @@ function displayStory(storyObject)
    {
     //create li
      let listItem=document.createElement("li");
+     listItem.classList.add("story-card");
+
+     //name card
+     let userName= document.createElement("h3");
+     userName.textContent=storyObject.name;
+
+     let storyText= document.createElement("p");
+     storyText.textContent=storyObject.story;
 
      // add name and story in between the li element 
-     listItem.textContent=storyObject.name + ":" + storyObject.story;
+     //listItem.textContent=storyObject.name + ":" + storyObject.story;
 
      // create the delete button 
      let deleteButton =document.createElement("button");
      deleteButton.textContent="DELETE";
       
+     listItem.appendChild(userName);
+     listItem.appendChild(storyText);
      // put the button insde the li element 
      listItem.appendChild(deleteButton);
      // add the li element with all its contents into the list
@@ -119,5 +127,10 @@ function displayStory(storyObject)
 
 
 }
+
+storyInput.addEventListener("input", function(){
+ let currentLength=storyInput.value.length;
+ charCounter.textContent=currentLength + " / 500";
+});
 
 

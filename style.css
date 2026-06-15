@@ -1,0 +1,30 @@
+.story-card{
+border:  1px solid #ccc;
+padding:15px; 
+margin-bottom: 10px;
+list-style: none ;
+border-radius: 10px;
+background-color: #f9f9f9;
+}
+
+.story-card h3 {
+    margin-top: 0;
+}
+
+
+
+#storyInput {
+    width: 100%;
+    min-height: 120px;
+}
+
+body {
+    max-width: 1050px;
+    margin: auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.error {
+    border: 2px solid red;
+}

@@ -62,11 +62,11 @@ console.log("storyId after load:", storyId);
 submitButton.addEventListener("click", function()
 {
     
-
+//cleaning the data up
     let story =storyInput.value.trim();
     let name =nameInput.value.trim();
 
-    
+    //validating the data
     let hasError = false;
 
     if (name === "" || story === "") {

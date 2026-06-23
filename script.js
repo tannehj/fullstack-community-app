@@ -147,23 +147,34 @@ function displayStory(storyObject)
      list.appendChild(listItem);
    
    
-     deleteButton.addEventListener("click", function()
-
-        {
-            //delete by IDS
+     deleteButton.addEventListener("click", function() {
+        fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`, {
+            method: "DELETE"
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
             listItem.remove();
-            let index =storiesList.findIndex(function(item){
-                return item.id===storyObject.id;
+
+            let index = storiesList.findIndex(function(item) {
+                return item.id === storyObject.id;
             });
 
-            if (index !==-1)
-            {
+            if (index !== -1) {
                 storiesList.splice(index, 1);
             }
-            localStorage.setItem("storiesList", JSON.stringify(storiesList));
+
             console.log("After delete:", [...storiesList]);
         });
+    });
 
+
+
+        
+//   delete frontend was not working last stoping point
+            
+        
 
 }
 

@@ -1,5 +1,5 @@
 let storiesList=[];
-let storyId=1;
+
 
 let storyInput =document.getElementById("storyInput");
 let submitButton =document.getElementById("submitButton");
@@ -14,29 +14,28 @@ let errorMessage = document.getElementById("errorMessage");
 //Frontend asks Flask for stories
 //Flask returns JSON
 //Frontend displays them
+ async function loadStories(){
+        try{
+            let response= await  fetch("http://127.0.0.1:5000/stories");
+            let data = await response.json ();
 
-fetch("http://127.0.0.1:5000/stories")
-      .then (function(response)
-      {
-          return response.json();
-      })
-      .then(function(data){
-          storiesList=data;
+            storiesList=data;
 
-     if (storiesList.length > 0) {
-        storyId = Math.max(...storiesList.map(function(item) {
-            return item.id;
-        })) + 1;
+            
+          /// this look like is slows this down and could be optimized 
+            for (let storyObject of storiesList){
+                displayStory(storyObject);
+        }
+     }  catch(error){
+            console.log("Error loading stories:", error);
+
+        }
+        
     }
-      
-
-      for (let storyObject of storiesList){
-        displayStory(storyObject);
-      }
+    loadStories()
 
 
-     });
-console.log("I reached the load section");
+console.log("is this new code working");
 
 //if (savedStories !== null) {
    // storiesList = JSON.parse(savedStories);
@@ -50,7 +49,7 @@ console.log("I reached the load section");
 
      
 //}
-console.log("storyId after load:", storyId);
+//console.log("storyId after load:", storyId);
 
 
     
@@ -79,10 +78,10 @@ submitButton.addEventListener("click", function()
         return;
     }
         
-    
-    let storyObject = {id: storyId, name:name, 
+    //create the story/name object
+    let storyObject = {name:name, 
         story:story };
-    storyId++;
+    
 
     //storiesList.push(storyObject);
     // console.log("After add:", [...storiesList]);
@@ -94,16 +93,17 @@ submitButton.addEventListener("click", function()
     fetch("http://127.0.0.1:5000/stories",{
         method:"POST",
         headers: {"Content-Type": "application/json"},
-        body:JSON.stringify(storyObject)
-    })
-    .then( function(response){
-        return response.json();
-    })
-    .then (function(data){
-          storiesList.push(storyObject);
-          displayStory(storyObject);
-    });
-
+            body:JSON.stringify(storyObject)
+        })
+        .then(function(response){
+            return response.json(); //reponse is "the story object
+        })
+        .then(function(savedStory) {
+            storiesList.push(savedStory);
+            displayStory(savedStory);
+        });
+    
+   
     //let listItem =document.createElement("li");
     //let deleteButton = document.createElement("button")
 
@@ -146,8 +146,11 @@ function displayStory(storyObject)
      // add the li element with all its contents into the list
      list.appendChild(listItem);
    
-   
+     
      deleteButton.addEventListener("click", function() {
+        console.log("Deleting id:", storyObject.id);
+        console.log("Delete button clicked");
+
         fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`, {
             method: "DELETE"
         })
@@ -183,4 +186,5 @@ storyInput.addEventListener("input", function(){
  charCounter.textContent=currentLength + " / 500";
 });
 
+console.log("is this new edit wokring");
 

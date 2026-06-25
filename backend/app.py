@@ -65,10 +65,17 @@ def create_story():
 )
      conn.commit()
 
+     new_id = cursor.lastrowid
+
      conn.close()
 
-     return jsonify({"message": "Story inserted"})
-     #stories.append(data)
+     new_story = {
+        "id": new_id,
+        "name": data["name"],
+        "story": data["story"]
+    }
+
+     return jsonify(new_story)
 
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):

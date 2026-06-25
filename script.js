@@ -131,9 +131,10 @@ function displayStory(storyObject)
 
      let storyText= document.createElement("p");
      storyText.textContent=storyObject.story;
+     
+     let editButton= document.createElement("button");
+     editButton.textContent ="EDIT";
 
-     // add name and story in between the li element 
-     //listItem.textContent=storyObject.name + ":" + storyObject.story;
 
      // create the delete button 
      let deleteButton =document.createElement("button");
@@ -143,10 +144,65 @@ function displayStory(storyObject)
      listItem.appendChild(storyText);
      // put the button insde the li element 
      listItem.appendChild(deleteButton);
+     listItem.appendChild(editButton);
      // add the li element with all its contents into the list
-     list.appendChild(listItem);
+     list.appendChild(listItem); //ui list
    
+
+     editButton.addEventListener("click", function() {
+          editButton.disabled=true;
+          storyText.style.display="none";
+          
+          let editText= document.createElement("textarea");
+          listItem.append(editText);
+          editText.value=storyObject.story;
+          
+          let saveButton=document.createElement("button");
+          let cancelButton =document.createElement("button");
+          saveButton.textContent= "Save";
+          cancelButton.textContent="cancel";
+          listItem.append(saveButton);
+          listItem.append(cancelButton);
+          saveButton.disabled=true;
+          
+         editText.addEventListener("input", function(){
+               if (storyObject.story===editText.value)
+                  saveButton.disabled=true;
+                 else{
+                    saveButton.disabled=false;
+                }
+            });
      
+
+          saveButton.addEventListener("click", function(){
+             //validate newText
+             if (editText.value.trim() === "") {
+                return;
+            }
+             storyText.style.display="block";
+             storyObject.story =editText.value.trim();
+             storyText.textContent=storyObject.story;
+
+             editText.remove();
+             saveButton.remove();
+             cancelButton.remove();
+             editButton.disabled=false;
+
+
+          });
+          cancelButton.addEventListener("click", function(){
+            storyText.style.display="block";
+            
+            storyText.textContent=storyObject.story;
+            
+            editText.remove();
+            saveButton.remove();
+            cancelButton.remove();
+            editButton.disabled=false;
+          });
+         
+    });
+      //acces listItem.
      deleteButton.addEventListener("click", function() {
         console.log("Deleting id:", storyObject.id);
         console.log("Delete button clicked");
@@ -173,7 +229,11 @@ function displayStory(storyObject)
     });
 
 
-
+function editStory(){
+    
+     // this open up this value 
+    storyInput.value 
+}
         
 //   delete frontend was not working last stoping point
             

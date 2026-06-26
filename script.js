@@ -148,7 +148,7 @@ function displayStory(storyObject)
      // add the li element with all its contents into the list
      list.appendChild(listItem); //ui list
    
-
+//MY FAVORITE FEATURE SO FAR
      editButton.addEventListener("click", function() {
           editButton.disabled=true;
           storyText.style.display="none";
@@ -165,7 +165,7 @@ function displayStory(storyObject)
           listItem.append(cancelButton);
           saveButton.disabled=true;
           
-         editText.addEventListener("input", function(){
+          editText.addEventListener("input", function(){
                if (storyObject.story===editText.value)
                   saveButton.disabled=true;
                  else{
@@ -176,20 +176,36 @@ function displayStory(storyObject)
 
           saveButton.addEventListener("click", function(){
              //validate newText
-             if (editText.value.trim() === "") {
+            if (editText.value.trim() === "") {
                 return;
             }
-             storyText.style.display="block";
-             storyObject.story =editText.value.trim();
-             storyText.textContent=storyObject.story;
+            fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`,{
+                method: "PATCH",
+                headers: {"Content-Type": "application/json"},
+                    body:JSON.stringify({story:editText.value})
+            })
 
-             editText.remove();
-             saveButton.remove();
-             cancelButton.remove();
-             editButton.disabled=false;
+            .then (function(response){
+                    return response.json() // the repsonse in this case is the id and story
+            })
 
+            .then (function(data){
+ 
+                storyText.style.display="block";
+                //storyObject.story =editText.value.trim();
+                storyObject.story=data.story;
+                storyText.textContent=storyObject.story;
 
-          });
+                editText.remove();
+                saveButton.remove();
+                cancelButton.remove();
+                editButton.disabled=false;
+                
+                })
+            
+        })
+
+          
           cancelButton.addEventListener("click", function(){
             storyText.style.display="block";
             
@@ -201,7 +217,8 @@ function displayStory(storyObject)
             editButton.disabled=false;
           });
          
-    });
+    
+});
       //acces listItem.
      deleteButton.addEventListener("click", function() {
         console.log("Deleting id:", storyObject.id);

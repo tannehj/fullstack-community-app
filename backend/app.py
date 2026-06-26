@@ -89,7 +89,24 @@ def delete_story(story_id):
     conn.close()
 
     return jsonify({"message": "Story deleted"})
+
+@app.route("/stories/<int:story_id>", methods=["PATCH"])
+def edit_story(story_id):
+    data=request.get_json()
+    conn=sqlite3.connect("stories.db")
+    cursor=conn.cursor()
+    cursor.execute("UPDATE stories SET story=? WHERE id =?",(data["story"],story_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"id":story_id, "story": data["story"]})
+
      
+
+
+
+
+
 
 if __name__== "__main__":
      init_db()

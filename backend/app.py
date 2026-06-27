@@ -1,6 +1,7 @@
 import sqlite3 #database
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import psycopg2
 
 app= Flask(__name__)
 CORS(app)
@@ -32,9 +33,13 @@ stories=[{"id":1,
 @app.route("/stories", methods=["GET"])
 def get_stories():
 
-    conn=sqlite3.connect("stories.db")
+    #conn=sqlite3.connect("stories.db")
+    conn= psycopg2.connect(
+    host="localhost",
+    database="story_app",
+    user="tannehjah")
     cursor=conn.cursor()
-
+    
     cursor.execute("SELECT * FROM stories")
 
     rows=cursor.fetchall()
@@ -56,13 +61,17 @@ def get_stories():
 def create_story():
      
      data=request.get_json()
-     conn=sqlite3.connect("stories.db")
+     #conn=sqlite3.connect("stories.db")
+     conn=psycopg2.connect(
+        host="localhost",
+        database="story_app",
+        user="tannehjah")
+     
      cursor=conn.cursor()
 
      cursor.execute(
-    "INSERT INTO stories (name, story) VALUES (?, ?)",
-    (data["name"], data["story"])
-)
+    "INSERT INTO stories (name, story) VALUES (%s, %s)",
+    (data["name"], data["story"]))
      conn.commit()
 
      new_id = cursor.lastrowid
@@ -80,10 +89,14 @@ def create_story():
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):
      
-    conn=sqlite3.connect("stories.db")
+    #conn=sqlite3.connect("stories.db")
+    conn=psycopg2.connect(
+        host="localhost",
+        database="story_app",
+        user="tannehjah")
     cursor=conn.cursor()
 
-    cursor.execute("DELETE FROM stories WHERE id=?",
+    cursor.execute("DELETE FROM stories WHERE id=%s",
                    (story_id,))
     conn.commit()
     conn.close()
@@ -93,9 +106,13 @@ def delete_story(story_id):
 @app.route("/stories/<int:story_id>", methods=["PATCH"])
 def edit_story(story_id):
     data=request.get_json()
-    conn=sqlite3.connect("stories.db")
+    #conn=sqlite3.connect("stories.db")
+    conn=psycopg2.connect(
+        host="localhost",
+        database="story_app",
+        user="tannehjah")
     cursor=conn.cursor()
-    cursor.execute("UPDATE stories SET story=? WHERE id =?",(data["story"],story_id))
+    cursor.execute("UPDATE stories SET story=%s WHERE id =%s",(data["story"],story_id))
     conn.commit()
     conn.close()
 

@@ -8,9 +8,6 @@ let nameInput =document.getElementById("userName");
 let charCounter = document.getElementById("charCounter");
 let errorMessage = document.getElementById("errorMessage");
 
-
-//let savedStories = localStorage.getItem("storiesList");
-
 //Frontend asks Flask for stories
 //Flask returns JSON
 //Frontend displays them
@@ -33,29 +30,6 @@ let errorMessage = document.getElementById("errorMessage");
         
     }
     loadStories()
-
-
-console.log("is this new code working");
-
-//if (savedStories !== null) {
-   // storiesList = JSON.parse(savedStories);
-//}
-
-//if (storiesList.length > 0) {
-   // storyId = Math.max(...storiesList.map(function(item) {
-       // return item.id;
-   // })) + 1;
-
-
-     
-//}
-//console.log("storyId after load:", storyId);
-
-
-    
-//for (let storyObject of storiesList)
-    //  {displayStory(storyObject)}
-
 
 
 submitButton.addEventListener("click", function()
@@ -82,14 +56,6 @@ submitButton.addEventListener("click", function()
     let storyObject = {name:name, 
         story:story };
     
-
-    //storiesList.push(storyObject);
-    // console.log("After add:", [...storiesList]);
-    // localStorage.setItem("storiesList", JSON.stringify(storiesList));
-   
-    // //calling function
-    // displayStory(storyObject);
-    
     fetch("http://127.0.0.1:5000/stories",{
         method:"POST",
         headers: {"Content-Type": "application/json"},
@@ -102,25 +68,11 @@ submitButton.addEventListener("click", function()
             storiesList.push(savedStory);
             displayStory(savedStory);
         });
-    
-   
-    //let listItem =document.createElement("li");
-    //let deleteButton = document.createElement("button")
-
-    //listItem.textContent= storyObject.name + ":" + storyObject.story; //this is opening 
-    // the object box and extracting the name and story attached to that id
-    //deleteButton.textContent = "DELETE"
-
-
-
-    //list.appendChild(listItem);
-    //listItem.appendChild(deleteButton);
     storyInput.value= "";
 
       });
-
-function displayStory(storyObject)
-   {
+// create the DOM ELements 
+function createStoryElements(storyObject){
     //create li
      let listItem=document.createElement("li");
      listItem.classList.add("story-card");
@@ -129,8 +81,8 @@ function displayStory(storyObject)
      let userName= document.createElement("h3");
      userName.textContent=storyObject.name;
 
-     let storyText= document.createElement("p");
-     storyText.textContent=storyObject.story;
+     let storyTextElement= document.createElement("p");
+     storyTextElement.textContent=storyObject.story;
      
      let editButton= document.createElement("button");
      editButton.textContent ="EDIT";
@@ -141,17 +93,22 @@ function displayStory(storyObject)
      deleteButton.textContent="DELETE";
       
      listItem.appendChild(userName);
-     listItem.appendChild(storyText);
+     listItem.appendChild(storyTextElement);
      // put the button insde the li element 
      listItem.appendChild(deleteButton);
      listItem.appendChild(editButton);
      // add the li element with all its contents into the list
-     list.appendChild(listItem); //ui list
-   
-//MY FAVORITE FEATURE SO FAR
+      //ui list
+
+     return{listItem,storyTextElement, editButton,deleteButton};
+}
+
+function setupEdit(storyElements, storyObject){
+    let { listItem, storyTextElement, editButton } = storyElements;
+    //MY FAVORITE FEATURE SO FAR
      editButton.addEventListener("click", function() {
           editButton.disabled=true;
-          storyText.style.display="none";
+          storyTextElement.style.display="none";
           
           let editText= document.createElement("textarea");
           listItem.append(editText);
@@ -160,17 +117,13 @@ function displayStory(storyObject)
           let saveButton=document.createElement("button");
           let cancelButton =document.createElement("button");
           saveButton.textContent= "Save";
-          cancelButton.textContent="cancel";
+          cancelButton.textContent="Cancel";
           listItem.append(saveButton);
           listItem.append(cancelButton);
           saveButton.disabled=true;
           
           editText.addEventListener("input", function(){
-               if (storyObject.story===editText.value)
-                  saveButton.disabled=true;
-                 else{
-                    saveButton.disabled=false;
-                }
+              saveButton.disabled = storyObject.story === editText.value;
             });
      
 
@@ -190,36 +143,30 @@ function displayStory(storyObject)
             })
 
             .then (function(data){
- 
-                storyText.style.display="block";
-                //storyObject.story =editText.value.trim();
                 storyObject.story=data.story;
-                storyText.textContent=storyObject.story;
+                storyTextElement.textContent=storyObject.story;
 
-                editText.remove();
-                saveButton.remove();
-                cancelButton.remove();
-                editButton.disabled=false;
+                exitEditMode(storyTextElement, editText, saveButton, cancelButton,editButton);
+
+                
                 
                 })
             
         })
-
-          
           cancelButton.addEventListener("click", function(){
-            storyText.style.display="block";
+            storyTextElement.textContent=storyObject.story;
             
-            storyText.textContent=storyObject.story;
+            exitEditMode(storyTextElement, editText, saveButton, cancelButton,editButton);
             
-            editText.remove();
-            saveButton.remove();
-            cancelButton.remove();
-            editButton.disabled=false;
           });
          
     
 });
-      //acces listItem.
+}
+function setupDelete(storyElements, storyObject){
+
+    let {deleteButton, listItem}=storyElements;
+     //acces listItem.
      deleteButton.addEventListener("click", function() {
         console.log("Deleting id:", storyObject.id);
         console.log("Delete button clicked");
@@ -241,27 +188,39 @@ function displayStory(storyObject)
                 storiesList.splice(index, 1);
             }
 
-            console.log("After delete:", [...storiesList]);
-        });
-    });
-
-
-function editStory(){
-    
-     // this open up this value 
-    storyInput.value 
-}
-        
-//   delete frontend was not working last stoping point
             
-        
+        });
+    });                 
 
 }
+
+function displayStory(storyObject)
+   { 
+    let storyElements= createStoryElements(storyObject);
+    list.appendChild(storyElements.listItem);
+    setupEdit(storyElements, storyObject);
+    setupDelete(storyElements, storyObject);
+
+   }
+function exitEditMode( storyTextElement,
+    editText,
+    saveButton,
+    cancelButton,
+    editButton){
+     storyTextElement.style.display="block";
+     editText.remove();
+
+            saveButton.remove();
+            cancelButton.remove();
+            editButton.disabled=false;
+
+
+}
+
 
 storyInput.addEventListener("input", function(){
  let currentLength=storyInput.value.length;
  charCounter.textContent=currentLength + " / 500";
 });
 
-console.log("is this new edit wokring");
 

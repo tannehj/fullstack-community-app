@@ -6,6 +6,13 @@ import psycopg2
 app= Flask(__name__)
 CORS(app)
 
+def get_db_connection():
+    conn=psycopg2.connect(
+    host="localhost",
+    database="story_app",
+    user="tannehjah")
+
+    return conn
 
 #database file create 
 def init_db():
@@ -34,12 +41,8 @@ stories=[{"id":1,
 def get_stories():
 
     #conn=sqlite3.connect("stories.db")
-    conn= psycopg2.connect(
-    host="localhost",
-    database="story_app",
-    user="tannehjah")
+    conn = get_db_connection()
     cursor=conn.cursor()
-    
     cursor.execute("SELECT * FROM stories")
 
     rows=cursor.fetchall()
@@ -62,10 +65,7 @@ def create_story():
      
      data=request.get_json()
      #conn=sqlite3.connect("stories.db")
-     conn=psycopg2.connect(
-        host="localhost",
-        database="story_app",
-        user="tannehjah")
+     conn = get_db_connection()
      
      cursor=conn.cursor()
 
@@ -90,10 +90,7 @@ def create_story():
 def delete_story(story_id):
      
     #conn=sqlite3.connect("stories.db")
-    conn=psycopg2.connect(
-        host="localhost",
-        database="story_app",
-        user="tannehjah")
+    conn = get_db_connection()
     cursor=conn.cursor()
 
     cursor.execute("DELETE FROM stories WHERE id=%s",
@@ -107,10 +104,7 @@ def delete_story(story_id):
 def edit_story(story_id):
     data=request.get_json()
     #conn=sqlite3.connect("stories.db")
-    conn=psycopg2.connect(
-        host="localhost",
-        database="story_app",
-        user="tannehjah")
+    conn = get_db_connection()
     cursor=conn.cursor()
     cursor.execute("UPDATE stories SET story=%s WHERE id =%s",(data["story"],story_id))
     conn.commit()

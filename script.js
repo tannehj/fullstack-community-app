@@ -7,14 +7,18 @@ let list= document.getElementById("storyList");
 let nameInput =document.getElementById("userName");
 let charCounter = document.getElementById("charCounter");
 let errorMessage = document.getElementById("errorMessage");
+const postError=document.getElementById("message");
 
 //Frontend asks Flask for stories
 //Flask returns JSON
 //Frontend displays them
- async function loadStories(){
+async function loadStories(){
         try{
-            let response= await  fetch("http://127.0.0.1:5000/stories");
-            let data = await response.json ();
+            // load the stories from the database after a refresh
+            // and populate the page
+        
+            let response= await fetch("http://127.0.0.1:5000/stories");
+            let data = await response.json();
 
             storiesList=data;
 
@@ -29,7 +33,9 @@ let errorMessage = document.getElementById("errorMessage");
         }
         
     }
-    loadStories()
+loadStories()
+
+
 
 
 submitButton.addEventListener("click", function()
@@ -55,19 +61,34 @@ submitButton.addEventListener("click", function()
     //create the story/name object
     let storyObject = {name:name, 
         story:story };
+    submitButton.disabled=true;
+    submitButton.textContent="Posting...";
     
-    fetch("http://127.0.0.1:5000/stories",{
+    
+        fetch("http://127.0.0.1:5000/stories",{
         method:"POST",
         headers: {"Content-Type": "application/json"},
             body:JSON.stringify(storyObject)
         })
         .then(function(response){
+            if (!response.ok){
+                throw new Error("Failed to post story");
+            }
             return response.json(); //reponse is "the story object
         })
         .then(function(savedStory) {
             storiesList.push(savedStory);
             displayStory(savedStory);
-        });
+            postError.textContent="Story Posted";
+        })
+        .catch(error=>{
+            console.error(error);
+            postError.textContent="Could not post story.";
+    }) .finally(()=>{
+     submitButton.disabled=false;
+     submitButton.textContent="Submit";
+    });
+    
     storyInput.value= "";
 
       });
@@ -91,18 +112,28 @@ function createStoryElements(storyObject){
      // create the delete button 
      let deleteButton =document.createElement("button");
      deleteButton.textContent="DELETE";
+     let TimeElement=document.createElement("p") 
+     TimeElement.textContent= formatTime(storyObject.created_at);
+     let statusElement=document.createElement("p")
+     
       
      listItem.appendChild(userName);
+     listItem.appendChild(TimeElement)
      listItem.appendChild(storyTextElement);
+     listItem.appendChild(statusElement);
+
+     
      // put the button insde the li element 
      listItem.appendChild(deleteButton);
      listItem.appendChild(editButton);
      // add the li element with all its contents into the list
       //ui list
+      
+     
 
      return{listItem,storyTextElement, editButton,deleteButton};
 }
-
+//creating story 
 function setupEdit(storyElements, storyObject){
     let { listItem, storyTextElement, editButton } = storyElements;
     //MY FAVORITE FEATURE SO FAR
@@ -139,6 +170,9 @@ function setupEdit(storyElements, storyObject){
             })
 
             .then (function(response){
+                if (!response.ok){
+                    throw new Error("Failed to edit story")
+                }
                     return response.json() // the repsonse in this case is the id and story
             })
 
@@ -148,9 +182,13 @@ function setupEdit(storyElements, storyObject){
 
                 exitEditMode(storyTextElement, editText, saveButton, cancelButton,editButton);
 
-                
-                
                 })
+            .catch(error=>{
+                console.error(error)
+                statusElement.textContent="Could not edit story";
+            })
+
+            
             
         })
           cancelButton.addEventListener("click", function(){
@@ -163,6 +201,7 @@ function setupEdit(storyElements, storyObject){
     
 });
 }
+//delete story 
 function setupDelete(storyElements, storyObject){
 
     let {deleteButton, listItem}=storyElements;
@@ -202,6 +241,7 @@ function displayStory(storyObject)
     setupDelete(storyElements, storyObject);
 
    }
+   //exit edit mode
 function exitEditMode( storyTextElement,
     editText,
     saveButton,
@@ -215,6 +255,29 @@ function exitEditMode( storyTextElement,
             editButton.disabled=false;
 
 
+}
+// update the time a was posted
+function formatTime(createdAt){
+    const postTime = new Date(createdAt);
+   const currentTime = new Date();
+
+const difference = currentTime - postTime;
+
+const minutes = Math.floor(difference / (1000 * 60));
+const hours = Math.floor(difference / (1000 * 60 * 60));
+const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+
+if (minutes < 1) {
+    return "just now";
+} else if (minutes < 60) {
+    return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+} else if (hours < 24) {
+    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+} else {
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+   
 }
 
 

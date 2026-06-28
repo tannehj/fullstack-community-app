@@ -1,32 +1,42 @@
-import sqlite3 #database
+# import sqlite3 #database
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import os
 import psycopg2
+from dotenv import load_dotenv
+
+
+load_dotenv() #lRead the .env file and make 
+#those variables available to my program.
 
 app= Flask(__name__)
 CORS(app)
 
 def get_db_connection():
     conn=psycopg2.connect(
-    host="localhost",
-    database="story_app",
-    user="tannehjah")
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER")
+    )
 
     return conn
 
 #database file create 
 def init_db():
-     conn=sqlite3.connect("stories.db")
-     cursor=conn.cursor()
-     cursor.execute("""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS stories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             story TEXT NOT NULL
-        )
+        );
     """)
-     conn.commit()
-     conn.close()
+
+    conn.commit()
+    cursor.close()
+    conn.close()
      
 
 #json test stories
@@ -43,7 +53,11 @@ def get_stories():
     #conn=sqlite3.connect("stories.db")
     conn = get_db_connection()
     cursor=conn.cursor()
-    cursor.execute("SELECT * FROM stories")
+    cursor.execute("""
+    SELECT id, name, story, created_at
+    FROM stories
+    ORDER BY id DESC
+""")
 
     rows=cursor.fetchall()
 
@@ -54,7 +68,8 @@ def get_stories():
         stories_list.append({
             "id": row[0],
             "name": row[1],
-            "story": row[2]
+            "story": row[2],
+            "created_at": row[3]
         })
     
     return jsonify(stories_list)
@@ -64,27 +79,32 @@ def get_stories():
 def create_story():
      
      data=request.get_json()
-     #conn=sqlite3.connect("stories.db")
+    
      conn = get_db_connection()
      
      cursor=conn.cursor()
 
      cursor.execute(
-    "INSERT INTO stories (name, story) VALUES (%s, %s)",
-    (data["name"], data["story"]))
+   """
+    INSERT INTO stories (name, story)
+    VALUES (%s, %s)
+    RETURNING id, name, story, created_at
+""", (data["name"], data["story"]))
+     
+     
+
+     new_story = cursor.fetchone()
      conn.commit()
-
-     new_id = cursor.lastrowid
-
      conn.close()
 
-     new_story = {
-        "id": new_id,
-        "name": data["name"],
-        "story": data["story"]
-    }
+     
 
-     return jsonify(new_story)
+     return jsonify({
+    "id": new_story[0],
+    "name": new_story[1],
+    "story": new_story[2],
+    "created_at": new_story[3]
+}), 201
 
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):
@@ -106,11 +126,24 @@ def edit_story(story_id):
     #conn=sqlite3.connect("stories.db")
     conn = get_db_connection()
     cursor=conn.cursor()
-    cursor.execute("UPDATE stories SET story=%s WHERE id =%s",(data["story"],story_id))
+    cursor.execute("""
+    UPDATE stories
+    SET story = %s
+    WHERE id = %s
+    RETURNING id, name, story, created_at
+""", (data["story"], story_id))
+    
+    updated_story=cursor.fetchone()
+
     conn.commit()
     conn.close()
 
-    return jsonify({"id":story_id, "story": data["story"]})
+    return jsonify({
+    "id": updated_story[0],
+    "name": updated_story[1],
+    "story": updated_story[2],
+    "created_at": updated_story[3]
+})
 
      
 

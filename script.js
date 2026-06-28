@@ -1,13 +1,13 @@
 let storiesList=[];
-
-
 let storyInput =document.getElementById("storyInput");
 let submitButton =document.getElementById("submitButton");
-let list= document.getElementById("storyList");
+let StoryList= document.getElementById("storyList");
 let nameInput =document.getElementById("userName");
 let charCounter = document.getElementById("charCounter");
 let errorMessage = document.getElementById("errorMessage");
 const postError=document.getElementById("message");
+const searchInput=document.getElementById("searchInput");
+
 
 //Frontend asks Flask for stories
 //Flask returns JSON
@@ -34,9 +34,6 @@ async function loadStories(){
         
     }
 loadStories()
-
-
-
 
 submitButton.addEventListener("click", function()
 {
@@ -236,7 +233,7 @@ function setupDelete(storyElements, storyObject){
 function displayStory(storyObject)
    { 
     let storyElements= createStoryElements(storyObject);
-    list.appendChild(storyElements.listItem);
+    StoryList.appendChild(storyElements.listItem);
     setupEdit(storyElements, storyObject);
     setupDelete(storyElements, storyObject);
 
@@ -287,3 +284,24 @@ storyInput.addEventListener("input", function(){
 });
 
 
+searchInput.addEventListener("input",  searchStories);
+
+function searchStories() {
+
+    const wordSearch = searchInput.value.toLowerCase().trim();
+
+    const filteredStories = storiesList.filter(function (storyObject) {
+
+        return storyObject.story
+            .toLowerCase()
+            .includes(wordSearch);
+
+    });
+
+    StoryList.innerHTML = "";
+
+    filteredStories.forEach(function (storyObject) {
+        displayStory(storyObject);
+    });
+
+}

@@ -116,6 +116,8 @@ def register():
     #validate 
     if not name or not username or not password:
         return jsonify({"message": "All fields are required"}), 400
+    if len(password) < 8:
+       return jsonify({"message": "Password must be at least 8 characters"}), 400
     conn=get_db_connection()
     cursor=conn.cursor()
     cursor.execute("SELECT id FROM users " 

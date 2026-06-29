@@ -4,6 +4,7 @@ from flask_cors import CORS
 import os
 import psycopg2
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 load_dotenv() #lRead the .env file and make 
@@ -105,6 +106,35 @@ def create_story():
     "story": new_story[2],
     "created_at": new_story[3]
 }), 201
+
+@app.route("/register", methods=["POST"])
+def register():
+    data=request.get_json()
+    name=data["name"]
+    username=data["username"]
+    password=data["password"]
+    #validate 
+    if not name or not username or not password:
+        return jsonify({"message": "All fields are required"}), 400
+    conn=get_db_connection()
+    cursor=conn.cursor()
+    cursor.execute("SELECT id FROM users " 
+            "WHERE username=%s" ,(username,)
+            )
+    exsiting_user=cursor.fetchone()
+    if exsiting_user:
+            conn.close()
+            return jsonify({"message":"Username already exists"}),400
+        
+       
+    password_hash=generate_password_hash(password)
+    cursor.execute("INSERT INTO users "
+    "(name,username,password_hash)VALUES"
+    " (%s, %s,%s)",
+    (name,username,password_hash))
+    conn.commit()
+    conn.close()
+    return jsonify({"message":"Account created"}),201
 
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):

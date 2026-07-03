@@ -59,6 +59,7 @@ def get_stories():
     FROM stories
     ORDER BY id DESC
 """)
+   
 
     rows=cursor.fetchall()
 
@@ -70,8 +71,9 @@ def get_stories():
             "id": row[0],
             "name": row[1],
             "story": row[2],
-            "created_at": row[3]
+            "created_at": row[3].isoformat()
         })
+       
     
     return jsonify(stories_list)
 
@@ -97,14 +99,14 @@ def create_story():
      new_story = cursor.fetchone()
      conn.commit()
      conn.close()
-
+     
      
 
      return jsonify({
     "id": new_story[0],
     "name": new_story[1],
     "story": new_story[2],
-    "created_at": new_story[3]
+    "created_at": new_story[3].isoformat()
 }), 201
 
 @app.route("/register", methods=["POST"])

@@ -38,7 +38,7 @@ async function appLogin(event){
         window.location.href = "stories.html";
         
     }catch (error) {
-    console.error(error); // Developer information thats me !!aw
+    console.error(error); 
 
     loginMessage.textContent =
         "Unable to connect to the server. Please try again later.";

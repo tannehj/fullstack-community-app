@@ -140,6 +140,40 @@ def register():
     conn.close()
     return jsonify({"message":"Account created"}),201
 
+@app.route("/login", methods=["POST"])
+def app_login():
+    data=request.get_json()
+
+    if not data:
+        return jsonify({"error": "Missing JSON body."}), 400
+
+    username=data.get("username")
+    password=data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "Username or password is missing."}), 400
+    
+    conn=get_db_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("SELECT id, password_hash FROM users WHERE username =%s", (username,) )
+
+    user=cursor.fetchone()
+
+    if not user:
+        return jsonify({"error": "wrong username or password"}), 400
+    if not check_password_hash(user[1], password):
+        return jsonify({"error": "wrong username or password"}), 400
+    conn.close()
+    return jsonify({"message": "Login successful"}), 200
+    
+   
+
+
+
+
+
+
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):
      

@@ -3,6 +3,7 @@ const password =document.getElementById("password");
 const loginMessage=document.getElementById("login-message");
 const loginForm = document.getElementById("login-form");
 
+
 loginForm.addEventListener("submit", appLogin);
 
 async function appLogin(event){
@@ -29,12 +30,13 @@ async function appLogin(event){
             body: JSON.stringify(loginObject)
         })
          const data= await response.json();
-
+        
         if (!response.ok) {
-        loginMessage.textContent = data.message;
+        loginMessage.textContent = data.error;
         return;
         }
-      
+       
+        
         window.location.href = "stories.html";
         
     }catch (error) {

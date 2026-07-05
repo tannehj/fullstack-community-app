@@ -5,6 +5,9 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import session
+
+
 
 
 load_dotenv() #lRead the .env file and make 
@@ -12,6 +15,8 @@ load_dotenv() #lRead the .env file and make
 
 app= Flask(__name__)
 CORS(app)
+
+app.secret_key = os.getenv("SECRET_KEY")
 
 def get_db_connection():
     conn=psycopg2.connect(
@@ -161,18 +166,15 @@ def app_login():
     user=cursor.fetchone()
 
     if not user:
-        return jsonify({"error": "wrong username or password"}), 400
+        conn.close()
+        return jsonify({"error": "wrong username or password"}), 401
     if not check_password_hash(user[1], password):
-        return jsonify({"error": "wrong username or password"}), 400
+        conn.close()
+        return jsonify({"error": "wrong username or password"}), 401
+    
+    session["user_id"]=user[0]
     conn.close()
     return jsonify({"message": "Login successful"}), 200
-    
-   
-
-
-
-
-
 
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):

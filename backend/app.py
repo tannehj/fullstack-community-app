@@ -85,6 +85,10 @@ def get_stories():
 
 @app.route("/stories", methods=["POST"])
 def create_story():
+     user_id = session.get("user_id")
+        
+     if not user_id:
+        return jsonify({"error": "User not authenticated"}), 401
      
      data=request.get_json()
     
@@ -97,7 +101,7 @@ def create_story():
     INSERT INTO stories (name, story)
     VALUES (%s, %s)
     RETURNING id, name, story, created_at
-""", (data["name"], data["story"]))
+""",  (data["name"], data["story"]))
      
      
 

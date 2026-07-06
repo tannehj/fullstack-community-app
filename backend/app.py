@@ -96,12 +96,21 @@ def create_story():
      
      cursor=conn.cursor()
 
+     cursor.execute("SELECT name FROM users WHERE id =%s", (user_id,))
+
+     registered_name=cursor.fetchone()
+
+     if not registered_name:
+         session.pop("user_id", None)
+         conn.close()
+         return jsonify({"error": "User not authenticated"}), 401
+     
      cursor.execute(
    """
-    INSERT INTO stories (name, story)
-    VALUES (%s, %s)
+    INSERT INTO stories (name, user_id, story)
+    VALUES (%s, %s, %s)
     RETURNING id, name, story, created_at
-""",  (data["name"], data["story"]))
+""",  ( registered_name[0], user_id, data["story"]))
      
      
 
@@ -109,8 +118,6 @@ def create_story():
      conn.commit()
      conn.close()
      
-     
-
      return jsonify({
     "id": new_story[0],
     "name": new_story[1],

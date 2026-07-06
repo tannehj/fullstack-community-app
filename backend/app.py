@@ -176,6 +176,30 @@ def app_login():
     conn.close()
     return jsonify({"message": "Login successful"}), 200
 
+@app.route("/current-user", methods=["GET"])
+def current_user():
+ user_id=session.get("user_id")
+
+ if not user_id:
+     return jsonify({"error": "User not authenticated"}), 401
+ conn =get_db_connection()
+ cursor=conn.cursor()
+ 
+ cursor.execute(
+    "SELECT username FROM users WHERE id = %s",
+    (user_id,)
+)
+ user=cursor.fetchone()
+
+ if not user:
+    session.pop("user_id", None)
+    conn.close()
+    return jsonify({"error": "User not authenticated"}), 401
+ 
+ conn.close()
+ return jsonify({
+    "username": user[0]}), 200
+
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):
      

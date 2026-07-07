@@ -14,7 +14,7 @@ load_dotenv() #lRead the .env file and make
 #those variables available to my program.
 
 app= Flask(__name__)
-CORS(app)
+CORS(app,supports_credentials=True)
 
 app.secret_key = os.getenv("SECRET_KEY")
 
@@ -60,9 +60,10 @@ def get_stories():
     conn = get_db_connection()
     cursor=conn.cursor()
     cursor.execute("""
-    SELECT id, name, story, created_at
+    SELECT stories.id, users.name, stories.story, stories.created_at
     FROM stories
-    ORDER BY id DESC
+    JOIN users ON stories.user_id = users.id
+    ORDER BY stories.created_at DESC
 """)
    
 
@@ -107,10 +108,10 @@ def create_story():
      
      cursor.execute(
    """
-    INSERT INTO stories (name, user_id, story)
-    VALUES (%s, %s, %s)
-    RETURNING id, name, story, created_at
-""",  ( registered_name[0], user_id, data["story"]))
+    INSERT INTO stories (user_id, story)
+    VALUES (%s, %s)
+    RETURNING id, story, created_at
+""",  ( user_id, data["story"]))
      
      
 
@@ -120,9 +121,9 @@ def create_story():
      
      return jsonify({
     "id": new_story[0],
-    "name": new_story[1],
-    "story": new_story[2],
-    "created_at": new_story[3].isoformat()
+    "name": registered_name[0],
+    "story": new_story[1],
+    "created_at": new_story[2].isoformat()
 }), 201
 
 @app.route("/register", methods=["POST"])
@@ -184,6 +185,7 @@ def app_login():
         return jsonify({"error": "wrong username or password"}), 401
     
     session["user_id"]=user[0]
+    
     conn.close()
     return jsonify({"message": "Login successful"}), 200
 

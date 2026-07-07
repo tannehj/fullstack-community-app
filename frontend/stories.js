@@ -2,7 +2,6 @@ let storiesList=[];
 let storyInput =document.getElementById("storyInput");
 let submitButton =document.getElementById("submitButton");
 let storyListElement= document.getElementById("storyList");
-let nameInput =document.getElementById("userName");
 let charCounter = document.getElementById("charCounter");
 let errorMessage = document.getElementById("errorMessage");
 const postError=document.getElementById("message");
@@ -41,14 +40,14 @@ submitButton.addEventListener("click", function()
     
 //cleaning the data up
     let story =storyInput.value.trim();
-    let name =nameInput.value.trim();
+   
 
     //validating the data
     let hasError = false;
 
-    if (name === "" || story === "") {
+    if (!story) {
     errorMessage.textContent =
-        "Please enter your name and story.";
+        "Please enter story .";
     hasError = true;
 }
 
@@ -57,14 +56,16 @@ submitButton.addEventListener("click", function()
     }
         
     //create the story/name object
-    let storyObject = {name:name, 
-        story:story };
+    let storyObject = { story:story
+
+     };
     submitButton.disabled=true;
     submitButton.textContent="Posting...";
     
     
         fetch("http://127.0.0.1:5000/stories",{
         method:"POST",
+        credentials: "include",
         headers: {"Content-Type": "application/json"},
             body:JSON.stringify(storyObject)
         })

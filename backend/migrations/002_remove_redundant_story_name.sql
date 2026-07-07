@@ -1,0 +1,5 @@
+ALTER TABLE stories
+ALTER COLUMN user_id SET NOT NULL;
+
+ALTER TABLE stories
+DROP COLUMN name;

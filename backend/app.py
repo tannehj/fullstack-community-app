@@ -189,6 +189,11 @@ def app_login():
     conn.close()
     return jsonify({"message": "Login successful"}), 200
 
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.pop("user_id", None)
+    return jsonify({"message": "Logged out successfully"}), 200
+
 @app.route("/current-user", methods=["GET"])
 def current_user():
  user_id=session.get("user_id")

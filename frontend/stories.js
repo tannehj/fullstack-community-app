@@ -8,18 +8,25 @@ const postError=document.getElementById("message");
 const searchInput=document.getElementById("searchInput");
 let logoutButton =document.getElementById("logout-button");
 let authMessage=document.getElementById("auth-card");
+const loginLink =document.getElementById("login-link");
 
 let currentUser=null;
 
 function updateAuthUI(){
-    if (currentUser)
-    {   authMessage.textContent = `HI ${currentUser}`;
+    if (currentUser){
+        
+        authMessage.style.display="block";
+        authMessage.textContent = `HI ${currentUser}`;
         logoutButton.style.display = "block";
+        loginLink.style.display="none";
         submitButton.disabled = false;
+
     }
     else{
-        authMessage.textContent = "You are not logged in.";
+        authMessage.style.display="none"
         logoutButton.style.display = "none";
+        loginLink.style.display="block";
+        postError.textContent="please sign-in to post";
        
     }
 }

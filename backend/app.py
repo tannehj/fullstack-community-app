@@ -242,7 +242,8 @@ def edit_story(story_id):
     UPDATE stories
     SET story = %s
     WHERE id = %s
-    RETURNING id, name, story, created_at
+    
+    RETURNING id, story, created_at
 """, (data["story"], story_id))
     
     updated_story=cursor.fetchone()
@@ -252,9 +253,9 @@ def edit_story(story_id):
 
     return jsonify({
     "id": updated_story[0],
-    "name": updated_story[1],
-    "story": updated_story[2],
-    "created_at": updated_story[3]
+    #"name": updated_story[1],
+    "story": updated_story[1],
+    "created_at": updated_story[2]
 })
 
      

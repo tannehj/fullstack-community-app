@@ -204,7 +204,7 @@ def current_user():
  cursor=conn.cursor()
  
  cursor.execute(
-    "SELECT username FROM users WHERE id = %s",
+    "SELECT name FROM users WHERE id = %s",
     (user_id,)
 )
  user=cursor.fetchone()
@@ -216,7 +216,7 @@ def current_user():
  
  conn.close()
  return jsonify({
-    "username": user[0]}), 200
+    "name": user[0]}), 200
 
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):

@@ -6,8 +6,76 @@ let charCounter = document.getElementById("charCounter");
 let errorMessage = document.getElementById("errorMessage");
 const postError=document.getElementById("message");
 const searchInput=document.getElementById("searchInput");
+let logoutButton =document.getElementById("logout-button");
+let authMessage=document.getElementById("auth-card");
 
+let currentUser=null;
 
+function updateAuthUI(){
+    if (currentUser)
+    {   authMessage.textContent = `HI ${currentUser}`;
+        logoutButton.style.display = "block";
+        submitButton.disabled = false;
+    }
+    else{
+        authMessage.textContent = "You are not logged in.";
+        logoutButton.style.display = "none";
+       
+    }
+}
+
+async function loadCurrentUser(){
+    try{
+        const response =await fetch("http://127.0.0.1:5000/current-user",
+            {
+            credentials: "include"
+            }
+
+        )
+        const data =await response.json();
+        if (!response.ok){
+            currentUser=null;
+            updateAuthUI();
+            return;
+        }
+        currentUser=data.name;
+        updateAuthUI();
+
+    }catch{
+        error(error)
+        console.error(error);
+        currentUser=null;
+        updateAuthUI();
+
+    }
+
+}
+
+loadCurrentUser();
+
+logoutButton.addEventListener("click", logout);
+
+async function logout(){
+    try{
+        let response =await fetch("http://127.0.0.1:5000/logout", {
+            method:"POST",
+            credentials: "include"
+        })
+        let data =await response.json();
+        if (!response.ok){
+            throw new Error("Logout failed")
+        
+      
+        }
+        currentUser=null;
+        updateAuthUI();
+        window.location.href = "login.html";
+
+    }catch(error){
+        console.error(error)
+        errorMessage.textContent="something went wrong whlie trying to logout"
+    }
+}
 //Frontend asks Flask for stories
 //Flask returns JSON
 //Frontend displays them

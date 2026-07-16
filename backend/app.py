@@ -10,11 +10,13 @@ from flask import session
 
 
 
-load_dotenv() #lRead the .env file and make 
+load_dotenv() #lRead the .env file and make
 #those variables available to my program.
 
 app= Flask(__name__)
-CORS(app,supports_credentials=True)
+CORS(app,
+     origins=["http://127.0.0.1:5500"],
+     supports_credentials=True)
 
 app.secret_key = os.getenv("SECRET_KEY")
 
@@ -27,7 +29,7 @@ def get_db_connection():
 
     return conn
 
-#database file create 
+#database file create
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -43,29 +45,32 @@ def init_db():
     conn.commit()
     cursor.close()
     conn.close()
-     
+
 
 #json test stories
 
 stories=[{"id":1,
          "name": "Tanneh",
          "story": "This is my first backend"
-     
+
 }]
 
 @app.route("/stories", methods=["GET"])
 def get_stories():
+    user_id =session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "user not authentiated"}), 401
 
-    #conn=sqlite3.connect("stories.db")
+
     conn = get_db_connection()
     cursor=conn.cursor()
     cursor.execute("""
-    SELECT stories.id, users.name, stories.story, stories.created_at
+    SELECT stories.id, stories.user_id, users.name, stories.story, stories.created_at
     FROM stories
     JOIN users ON stories.user_id = users.id
     ORDER BY stories.created_at DESC
 """)
-   
+
 
     rows=cursor.fetchall()
 
@@ -75,26 +80,27 @@ def get_stories():
     for row in rows:
         stories_list.append({
             "id": row[0],
-            "name": row[1],
-            "story": row[2],
-            "created_at": row[3].isoformat()
+            "user_id": row[1],
+            "name": row[2],
+            "story": row[3],
+            "created_at": row[4].isoformat()
         })
-       
-    
+
+
     return jsonify(stories_list)
 
 
 @app.route("/stories", methods=["POST"])
 def create_story():
      user_id = session.get("user_id")
-        
+
      if not user_id:
         return jsonify({"error": "User not authenticated"}), 401
-     
+
      data=request.get_json()
-    
+
      conn = get_db_connection()
-     
+
      cursor=conn.cursor()
 
      cursor.execute("SELECT name FROM users WHERE id =%s", (user_id,))
@@ -105,20 +111,20 @@ def create_story():
          session.pop("user_id", None)
          conn.close()
          return jsonify({"error": "User not authenticated"}), 401
-     
+
      cursor.execute(
    """
     INSERT INTO stories (user_id, story)
     VALUES (%s, %s)
     RETURNING id, story, created_at
 """,  ( user_id, data["story"]))
-     
-     
+
+
 
      new_story = cursor.fetchone()
      conn.commit()
      conn.close()
-     
+
      return jsonify({
     "id": new_story[0],
     "name": registered_name[0],
@@ -132,22 +138,22 @@ def register():
     name=data["name"]
     username=data["username"]
     password=data["password"]
-    #validate 
+    #validate
     if not name or not username or not password:
         return jsonify({"message": "All fields are required"}), 400
     if len(password) < 8:
        return jsonify({"message": "Password must be at least 8 characters"}), 400
     conn=get_db_connection()
     cursor=conn.cursor()
-    cursor.execute("SELECT id FROM users " 
+    cursor.execute("SELECT id FROM users "
             "WHERE username=%s" ,(username,)
             )
     exsiting_user=cursor.fetchone()
     if exsiting_user:
             conn.close()
             return jsonify({"message":"Username already exists"}),400
-        
-       
+
+
     password_hash=generate_password_hash(password)
     cursor.execute("INSERT INTO users "
     "(name,username,password_hash)VALUES"
@@ -169,7 +175,7 @@ def app_login():
 
     if not username or not password:
         return jsonify({"error": "Username or password is missing."}), 400
-    
+
     conn=get_db_connection()
     cursor=conn.cursor()
 
@@ -183,13 +189,14 @@ def app_login():
     if not check_password_hash(user[1], password):
         conn.close()
         return jsonify({"error": "wrong username or password"}), 401
-    
+
     session["user_id"]=user[0]
-    
+
     conn.close()
     return jsonify({"message": "Login successful"}), 200
 
 @app.route("/logout", methods=["POST"])
+
 def logout():
     session.pop("user_id", None)
     return jsonify({"message": "Logged out successfully"}), 200
@@ -202,9 +209,9 @@ def current_user():
      return jsonify({"error": "User not authenticated"}), 401
  conn =get_db_connection()
  cursor=conn.cursor()
- 
+
  cursor.execute(
-    "SELECT name FROM users WHERE id = %s",
+    "SELECT id, name FROM users WHERE id = %s",
     (user_id,)
 )
  user=cursor.fetchone()
@@ -213,39 +220,93 @@ def current_user():
     session.pop("user_id", None)
     conn.close()
     return jsonify({"error": "User not authenticated"}), 401
- 
+
  conn.close()
  return jsonify({
-    "name": user[0]}), 200
+    "id": user[0],
+    "name":user[1]}), 200
 
 @app.route("/stories/<int:story_id>", methods=["DELETE"])
 def delete_story(story_id):
-     
-    #conn=sqlite3.connect("stories.db")
+    user_id=session.get("user_id")
+    if not user_id:
+        return jsonify({"error":"user is not authorized"}), 401
+
     conn = get_db_connection()
     cursor=conn.cursor()
+
+    cursor.execute("SELECT id FROM users WHERE id=%s ",
+                   (user_id,))
+
+    user =cursor.fetchone()
+    if not user:
+        session.pop("user_id", None)
+        conn.close()
+        return jsonify({"error": "user not found"}), 401
+
+    cursor.execute("SELECT user_id FROM stories WHERE id =%s",
+                   (story_id,))
+    found_story=cursor.fetchone()
+
+    if not found_story:
+        conn.close()
+        return({"error":"story not found"}), 404
+
+    found_id=found_story[0]
+
+    if found_id != user_id:
+        conn.close()
+        return({"error" : "not authorized to delete this story"}), 403
+
 
     cursor.execute("DELETE FROM stories WHERE id=%s",
                    (story_id,))
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "Story deleted"})
+    return jsonify({"message": "Story deleted"}), 200
 
 @app.route("/stories/<int:story_id>", methods=["PATCH"])
-def edit_story(story_id):
+def update_story(story_id):
+    user_id=session.get("user_id")
+
+    if not user_id:
+        return jsonify({"error": "user is not authorized"}), 401
+
     data=request.get_json()
-    #conn=sqlite3.connect("stories.db")
     conn = get_db_connection()
     cursor=conn.cursor()
+
+    cursor.execute("SELECT id FROM "
+    "users WHERE id=%s ",
+                   (user_id,))
+
+    existing_user=cursor.fetchone()
+
+    if not existing_user:
+        conn.close()
+        session.pop("user_id", None)
+        return jsonify({"error":"No user found"}),401
+
+    cursor.execute("SELECT user_id FROM stories"
+    " WHERE id=%s ",(story_id,))
+
+    story_owner= cursor.fetchone()
+    if not story_owner:
+        conn.close()
+        return jsonify({"error":"story not found"}), 404
+
+    if story_owner[0] !=user_id:
+        return jsonify({"error":"Not authorized to edit this story"}), 403
+
     cursor.execute("""
     UPDATE stories
     SET story = %s
     WHERE id = %s
-    
+
     RETURNING id, story, created_at
 """, (data["story"], story_id))
-    
+
     updated_story=cursor.fetchone()
 
     conn.commit()
@@ -253,12 +314,11 @@ def edit_story(story_id):
 
     return jsonify({
     "id": updated_story[0],
-    #"name": updated_story[1],
     "story": updated_story[1],
     "created_at": updated_story[2]
-})
+}),200
 
-     
+
 
 
 

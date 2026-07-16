@@ -12,11 +12,13 @@ const loginLink =document.getElementById("login-link");
 
 let currentUser=null;
 
+
+
 function updateAuthUI(){
     if (currentUser){
-        
+
         authMessage.style.display="block";
-        authMessage.textContent = `HI ${currentUser}`;
+        authMessage.textContent = `HI ${currentUser.name}`;
         logoutButton.style.display = "block";
         loginLink.style.display="none";
         submitButton.disabled = false;
@@ -27,7 +29,7 @@ function updateAuthUI(){
         logoutButton.style.display = "none";
         loginLink.style.display="block";
         postError.textContent="please sign-in to post";
-       
+
     }
 }
 
@@ -45,20 +47,25 @@ async function loadCurrentUser(){
             updateAuthUI();
             return;
         }
-        currentUser=data.name;
+        currentUser=data;
         updateAuthUI();
 
-    }catch{
-        error(error)
+
+
+    }catch(error){
         console.error(error);
         currentUser=null;
         updateAuthUI();
+
 
     }
 
 }
 
-loadCurrentUser();
+
+
+
+
 
 logoutButton.addEventListener("click", logout);
 
@@ -71,8 +78,8 @@ async function logout(){
         let data =await response.json();
         if (!response.ok){
             throw new Error("Logout failed")
-        
-      
+
+
         }
         currentUser=null;
         updateAuthUI();
@@ -90,32 +97,49 @@ async function loadStories(){
         try{
             // load the stories from the database after a refresh
             // and populate the page
-        
-            let response= await fetch("http://127.0.0.1:5000/stories");
-            let data = await response.json();
 
-            
-            storiesList=data;
+            let response= await fetch("http://127.0.0.1:5000/stories", {
+                 credentials: "include"});
+            let stories = await response.json();
 
-            
-          /// this look like is slows this down and could be optimized 
+            if (!response.ok)
+            {
+                throw new Error( stories.error || "Could not load stories")
+            }
+
+            storiesList=stories;
+
+
+          /// this look like is slows this down and could be optimized
             for (let storyObject of storiesList){
                 displayStory(storyObject);
+
         }
      }  catch(error){
             console.log("Error loading stories:", error);
 
         }
-        
+
     }
-loadStories()
+
+async function initializePage(){
+   await loadCurrentUser();
+
+  if (!currentUser){
+    window.location.href = "login.html";
+    return;
+  }
+  await loadStories();
+}
+ initializePage()
+
 
 submitButton.addEventListener("click", function()
 {
-    
+
 //cleaning the data up
     let story =storyInput.value.trim();
-   
+
 
     //validating the data
     let hasError = false;
@@ -129,15 +153,15 @@ submitButton.addEventListener("click", function()
     if (hasError) {
         return;
     }
-        
+
     //create the story/name object
     let storyObject = { story:story
 
      };
     submitButton.disabled=true;
     submitButton.textContent="Posting...";
-    
-    
+
+
         fetch("http://127.0.0.1:5000/stories",{
         method:"POST",
         credentials: "include",
@@ -149,7 +173,7 @@ submitButton.addEventListener("click", function()
                 throw new Error("Failed to post story");
             }
             return response.json(); //reponse is "the story object
-        
+
         })
         .then(function(savedStory) {
             storiesList.push(savedStory);
@@ -163,12 +187,12 @@ submitButton.addEventListener("click", function()
      submitButton.disabled=false;
      submitButton.textContent="Submit";
     });
-    
+
     storyInput.value= "";
 
       });
-// create the DOM ELements 
-function createStoryElements(storyObject){
+// create the DOM ELements
+function createStoryElements(storyObject, isOwner){
     //create li
      let listItem=document.createElement("li");
      listItem.classList.add("story-card");
@@ -179,46 +203,48 @@ function createStoryElements(storyObject){
 
      let storyTextElement= document.createElement("p");
      storyTextElement.textContent=storyObject.story;
-     
+
+
      let editButton= document.createElement("button");
      editButton.textContent ="EDIT";
 
-
-     // create the delete button 
+     // create the delete button
      let deleteButton =document.createElement("button");
      deleteButton.textContent="DELETE";
-     let TimeElement=document.createElement("p") 
+
+     let TimeElement=document.createElement("p")
      TimeElement.textContent= formatTime(storyObject.created_at);
-     let statusElement=document.createElement("p")
-     
-      
+
+     let statusElement=document.createElement("p");
+
+
      listItem.appendChild(userName);
      listItem.appendChild(TimeElement)
      listItem.appendChild(storyTextElement);
      listItem.appendChild(statusElement);
 
-     
-    
+
+    if (isOwner){
      listItem.appendChild(deleteButton);
      listItem.appendChild(editButton);
-    
-      
-     
+    }
 
-     return{listItem,storyTextElement, editButton,deleteButton};
+
+    return{listItem, statusElement, storyTextElement, editButton,deleteButton};
 }
-//creating story 
+//creating story
 function setupEdit(storyElements, storyObject){
-    let { listItem, storyTextElement, editButton } = storyElements;
+    let { listItem, statusElement,storyTextElement, editButton } = storyElements;
+
     //MY FAVORITE FEATURE SO FAR
      editButton.addEventListener("click", function() {
           editButton.disabled=true;
           storyTextElement.style.display="none";
-          
+
           let editText= document.createElement("textarea");
           listItem.append(editText);
           editText.value=storyObject.story;
-          
+
           let saveButton=document.createElement("button");
           let cancelButton =document.createElement("button");
           saveButton.textContent= "Save";
@@ -226,11 +252,11 @@ function setupEdit(storyElements, storyObject){
           listItem.append(saveButton);
           listItem.append(cancelButton);
           saveButton.disabled=true;
-          
+
           editText.addEventListener("input", function(){
               saveButton.disabled = storyObject.story === editText.value;
             });
-     
+
 
           saveButton.addEventListener("click", function(){
              //validate newText
@@ -239,6 +265,7 @@ function setupEdit(storyElements, storyObject){
             }
             fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`,{
                 method: "PATCH",
+                credentials: "include",
                 headers: {"Content-Type": "application/json"},
                     body:JSON.stringify({story:editText.value})
             })
@@ -246,8 +273,9 @@ function setupEdit(storyElements, storyObject){
             .then (function(response){
                 if (!response.ok){
                     throw new Error("Failed to edit story")
+                    return;
                 }
-                    return response.json() // the repsonse in this case is the id and story
+                    return response.json()
             })
 
             .then (function(data){
@@ -259,33 +287,38 @@ function setupEdit(storyElements, storyObject){
                 })
             .catch(error=>{
                 console.error(error)
-                statusElement.textContent="Could not edit story";
+                statusElement.textContent="can not edit story";
             })
 
-            
-            
+
+
         })
           cancelButton.addEventListener("click", function(){
             storyTextElement.textContent=storyObject.story;
-            
+
             exitEditMode(storyTextElement, editText, saveButton, cancelButton,editButton);
-            
+
           });
-         
-    
+
+
 });
 }
-//delete story 
+//delete story
 function setupDelete(storyElements, storyObject){
 
-    let {deleteButton, listItem}=storyElements;
+    let {deleteButton, listItem, statusElement}=storyElements;
      //acces listItem.
      deleteButton.addEventListener("click", function() {
-        
+
         fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`, {
-            method: "DELETE"
+            method: "DELETE",
+            credentials: "include"
         })
         .then(function(response) {
+            if (!response.ok){
+                    throw new Error("Failed to delete story")
+                    return;
+                }
             return response.json();
         })
         .then(function(data) {
@@ -299,25 +332,35 @@ function setupDelete(storyElements, storyObject){
                 storiesList.splice(index, 1);
             }
 
-            
-        });
-    });                 
+
+        })
+         .catch(error=>{
+                console.error(error)
+                statusElement.textContent="Could not delete story";
+            })
+    });
 
 }
 
 function displayStory(storyObject,position = "bottom")
-   { 
-    let storyElements= createStoryElements(storyObject);
-   
+   {
+    const isOwner=
+      currentUser!==null&&
+      currentUser.id==storyObject.user_id;
+
+    let storyElements= createStoryElements(storyObject, isOwner);
+
 
     if (position === "top") {
     storyListElement.prepend(storyElements.listItem);
     }else {
     storyListElement.appendChild(storyElements.listItem);
     }
-   
+
+   if (isOwner){
     setupEdit(storyElements, storyObject);
     setupDelete(storyElements, storyObject);
+   }
 
    }
    //exit edit mode
@@ -339,17 +382,17 @@ function exitEditMode( storyTextElement,
 function formatTime(createdAt){
     const postTime = new Date(createdAt);
     const currentTime = new Date();
-    
+
 
 
 
     const difference = currentTime - postTime;
-    
+
 
     const minutes = Math.floor(difference / (1000 * 60));
     const hours = Math.floor(difference / (1000 * 60 * 60));
     const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-    
+
 
     if (minutes < 1) {
         return "just now";
@@ -361,7 +404,7 @@ function formatTime(createdAt){
         return `${days} day${days === 1 ? "" : "s"} ago`;
     }
 
-   
+
 }
 
 

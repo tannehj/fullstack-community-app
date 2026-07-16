@@ -27,7 +27,7 @@ async function registerUsers(){
         password:password
 
     };
-    console.log(userObject);
+   
 
     try{
     // form an object to easily send across http n to backend

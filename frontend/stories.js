@@ -428,7 +428,7 @@ function searchStories() {
 
     });
 
-    StoryList.innerHTML = "";
+    storyListElement.innerHTML = "";
 
     filteredStories.forEach(function (storyObject) {
         displayStory(storyObject);

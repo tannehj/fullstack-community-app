@@ -7,44 +7,54 @@ from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 
-
-
-
 load_dotenv() #lRead the .env file and make
 #those variables available to my program.
 
+
+
 app= Flask(__name__)
+
+frontend_origin = os.environ.get("FRONTEND_ORIGIN")
+
+allowed_origins = [
+    "http://127.0.0.1:5500"
+]
+
+if frontend_origin:
+    allowed_origins.append(frontend_origin)
+
+
 CORS(app,
-     origins=["http://127.0.0.1:5500"],
+     origins=allowed_origins,
      supports_credentials=True)
 
 app.secret_key = os.getenv("SECRET_KEY")
 
 def get_db_connection():
-    conn=psycopg2.connect(
+    database_url = os.getenv("DATABASE_URL")
+    sslmode = os.getenv("DB_SSLMODE")
+
+    connection_options = {}
+
+    if sslmode:
+        connection_options["sslmode"] = sslmode
+
+    if database_url:
+        return psycopg2.connect(
+            database_url,
+            **connection_options
+        )
+
+    return psycopg2.connect(
         host=os.getenv("DB_HOST"),
         database=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER")
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        port=os.getenv("DB_PORT", "5432"),
+        **connection_options
     )
 
-    return conn
 
-#database file create
-def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS stories (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            story TEXT NOT NULL
-        );
-    """)
-
-    conn.commit()
-    cursor.close()
-    conn.close()
 
 
 #json test stories
@@ -116,7 +126,7 @@ def create_story():
    """
     INSERT INTO stories (user_id, story)
     VALUES (%s, %s)
-    RETURNING id, story, created_at
+    RETURNING id, story, created_at, user_id
 """,  ( user_id, data["story"]))
 
 
@@ -129,7 +139,8 @@ def create_story():
     "id": new_story[0],
     "name": registered_name[0],
     "story": new_story[1],
-    "created_at": new_story[2].isoformat()
+    "created_at": new_story[2].isoformat(),
+    "user_id":new_story[3]
 }), 201
 
 @app.route("/register", methods=["POST"])
@@ -268,56 +279,70 @@ def delete_story(story_id):
 
 @app.route("/stories/<int:story_id>", methods=["PATCH"])
 def update_story(story_id):
-    user_id=session.get("user_id")
+    user_id = session.get("user_id")
 
     if not user_id:
-        return jsonify({"error": "user is not authorized"}), 401
+        return jsonify({"error": "User is not authorized"}), 401
 
-    data=request.get_json()
+    data = request.get_json(silent=True)
+
+    if not data or not data.get("story"):
+        return jsonify({"error": "Story is required"}), 400
+
     conn = get_db_connection()
-    cursor=conn.cursor()
+    cursor = conn.cursor()
 
-    cursor.execute("SELECT id FROM "
-    "users WHERE id=%s ",
-                   (user_id,))
+    try:
+        cursor.execute(
+            "SELECT id FROM users WHERE id = %s",
+            (user_id,)
+        )
 
-    existing_user=cursor.fetchone()
+        existing_user = cursor.fetchone()
 
-    if not existing_user:
+        if not existing_user:
+            session.pop("user_id", None)
+            return jsonify({"error": "No user found"}), 401
+
+        cursor.execute(
+            "SELECT user_id FROM stories WHERE id = %s",
+            (story_id,)
+        )
+
+        story_owner = cursor.fetchone()
+
+        if not story_owner:
+            return jsonify({"error": "Story not found"}), 404
+
+        if story_owner[0] != user_id:
+            return jsonify({
+                "error": "Not authorized to edit this story"
+            }), 403
+
+        cursor.execute("""
+            UPDATE stories
+            SET story = %s
+            WHERE id = %s
+            RETURNING id, story, created_at, user_id
+        """, (data["story"], story_id))
+
+        updated_story = cursor.fetchone()
+        conn.commit()
+
+        return jsonify({
+            "id": updated_story[0],
+            "story": updated_story[1],
+            "created_at": updated_story[2],
+            "user_id": updated_story[3]
+        }), 200
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
         conn.close()
-        session.pop("user_id", None)
-        return jsonify({"error":"No user found"}),401
-
-    cursor.execute("SELECT user_id FROM stories"
-    " WHERE id=%s ",(story_id,))
-
-    story_owner= cursor.fetchone()
-    if not story_owner:
-        conn.close()
-        return jsonify({"error":"story not found"}), 404
-
-    if story_owner[0] !=user_id:
-        return jsonify({"error":"Not authorized to edit this story"}), 403
-
-    cursor.execute("""
-    UPDATE stories
-    SET story = %s
-    WHERE id = %s
-
-    RETURNING id, story, created_at
-""", (data["story"], story_id))
-
-    updated_story=cursor.fetchone()
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({
-    "id": updated_story[0],
-    "story": updated_story[1],
-    "created_at": updated_story[2]
-}),200
-
 
 
 
@@ -326,5 +351,4 @@ def update_story(story_id):
 
 
 if __name__== "__main__":
-     init_db()
      app.run(debug=True, port=5000)

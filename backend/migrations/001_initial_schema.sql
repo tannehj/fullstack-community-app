@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    username VARCHAR(30) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS stories (
+    id SERIAL PRIMARY KEY,
+    story TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
+    CONSTRAINT fk_stories_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+);

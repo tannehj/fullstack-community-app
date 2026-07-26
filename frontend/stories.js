@@ -35,7 +35,7 @@ function updateAuthUI(){
 
 async function loadCurrentUser(){
     try{
-        const response =await fetch("http://127.0.0.1:5000/current-user",
+        const response =await fetch(`${API_BASE_URL}/current-user`,
             {
             credentials: "include"
             }
@@ -71,7 +71,7 @@ logoutButton.addEventListener("click", logout);
 
 async function logout(){
     try{
-        let response =await fetch("http://127.0.0.1:5000/logout", {
+        let response =await fetch(`${API_BASE_URL}/logout`, {
             method:"POST",
             credentials: "include"
         })
@@ -98,7 +98,7 @@ async function loadStories(){
             // load the stories from the database after a refresh
             // and populate the page
 
-            let response= await fetch("http://127.0.0.1:5000/stories", {
+            let response= await fetch(`${API_BASE_URL}/stories`, {
                  credentials: "include"});
             let stories = await response.json();
 
@@ -162,7 +162,7 @@ submitButton.addEventListener("click", function()
     submitButton.textContent="Posting...";
 
 
-        fetch("http://127.0.0.1:5000/stories",{
+        fetch(`${API_BASE_URL}/stories`,{
         method:"POST",
         credentials: "include",
         headers: {"Content-Type": "application/json"},
@@ -263,7 +263,7 @@ function setupEdit(storyElements, storyObject){
             if (editText.value.trim() === "") {
                 return;
             }
-            fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`,{
+            fetch(`${API_BASE_URL}/stories/${storyObject.id}`,{
                 method: "PATCH",
                 credentials: "include",
                 headers: {"Content-Type": "application/json"},
@@ -310,7 +310,7 @@ function setupDelete(storyElements, storyObject){
      //acces listItem.
      deleteButton.addEventListener("click", function() {
 
-        fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`, {
+        fetch(`${API_BASE_URL}/stories/${storyObject.id}`, {
             method: "DELETE",
             credentials: "include"
         })

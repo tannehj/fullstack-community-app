@@ -31,7 +31,7 @@ async function registerUsers(){
 
     try{
     // form an object to easily send across http n to backend
-        let response  = await fetch("http://127.0.0.1:5000/register",{
+        let response  = await fetch(`${API_BASE_URL}/register`,{
             method: "POST",
             headers: {"Content-Type": "application/json"}, 
             body:JSON.stringify(userObject)

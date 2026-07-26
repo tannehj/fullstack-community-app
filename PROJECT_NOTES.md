@@ -58,3 +58,10 @@ Owner sees Edit/Delete.
 Non-owner does not see Edit/Delete.
 Logged-out user is redirected.
 Manually sending PATCH/DELETE as a non-owner still gets 403 from Flask.
+
+## deployment
+1. REFRACTOR URL FROM JUST LOCAL TO LOCAL AND DEPLOYMENT READY
+
+2. CONFIGUGE CORS FOR GLOBAL URL
+
+3. prepare Flask to run on Render with Gunicorn

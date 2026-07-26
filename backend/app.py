@@ -107,7 +107,20 @@ def create_story():
      if not user_id:
         return jsonify({"error": "User not authenticated"}), 401
 
-     data=request.get_json()
+     data=request.get_json(silent=True)
+
+     if not isinstance(data, dict):
+        return jsonify({"error": "Request body must be a valid JSON object"}), 400
+
+     story=data.get("story")
+
+     if not isinstance(story, str):
+        return jsonify({"error": "Story must be a string"}), 400
+
+     story=story.strip()
+
+     if not story or len(story) > 500:
+        return jsonify({"error": "Story must be between 1 and 500 characters"}), 400
 
      conn = get_db_connection()
 
@@ -127,7 +140,7 @@ def create_story():
     INSERT INTO stories (user_id, story)
     VALUES (%s, %s)
     RETURNING id, story, created_at, user_id
-""",  ( user_id, data["story"]))
+""",  ( user_id, story))
 
 
 
@@ -145,15 +158,30 @@ def create_story():
 
 @app.route("/register", methods=["POST"])
 def register():
-    data=request.get_json()
-    name=data["name"]
-    username=data["username"]
-    password=data["password"]
+    data=request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({"message": "Request body must be a valid JSON object"}), 400
+
+    name=data.get("name")
+    username=data.get("username")
+    password=data.get("password")
+
+    if not all(isinstance(value, str) for value in (name, username, password)):
+        return jsonify({"message": "Name, username, and password must be strings"}), 400
+
+    name=name.strip()
+    username=username.strip()
+
     #validate
     if not name or not username or not password:
         return jsonify({"message": "All fields are required"}), 400
-    if len(password) < 8:
-       return jsonify({"message": "Password must be at least 8 characters"}), 400
+    if len(name) > 100:
+       return jsonify({"message": "Name must be 100 characters or fewer"}), 400
+    if len(username) > 30:
+       return jsonify({"message": "Username must be 30 characters or fewer"}), 400
+    if len(password) < 8 or len(password) > 128:
+       return jsonify({"message": "Password must be between 8 and 128 characters"}), 400
     conn=get_db_connection()
     cursor=conn.cursor()
     cursor.execute("SELECT id FROM users "
@@ -286,8 +314,18 @@ def update_story(story_id):
 
     data = request.get_json(silent=True)
 
-    if not data or not data.get("story"):
-        return jsonify({"error": "Story is required"}), 400
+    if not isinstance(data, dict):
+        return jsonify({"error": "Request body must be a valid JSON object"}), 400
+
+    story = data.get("story")
+
+    if not isinstance(story, str):
+        return jsonify({"error": "Story must be a string"}), 400
+
+    story = story.strip()
+
+    if not story or len(story) > 500:
+        return jsonify({"error": "Story must be between 1 and 500 characters"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -324,7 +362,7 @@ def update_story(story_id):
             SET story = %s
             WHERE id = %s
             RETURNING id, story, created_at, user_id
-        """, (data["story"], story_id))
+        """, (story, story_id))
 
         updated_story = cursor.fetchone()
         conn.commit()

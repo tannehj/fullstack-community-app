@@ -11,7 +11,7 @@ async function appLogin(event){
     event.preventDefault();
 
     const usernameValue=username.value.trim();
-    const passwordValue =password.value.trim();
+    const passwordValue =password.value;
 
     if (usernameValue===""|| passwordValue==="")
     {

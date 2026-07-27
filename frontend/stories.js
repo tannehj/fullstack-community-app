@@ -119,6 +119,8 @@ async function loadStories(){
         }
      }  catch(error){
             console.log("Error loading stories:", error);
+            errorMessage.textContent =
+                error.message || "Could not load stories.";
 
         }
 
@@ -182,8 +184,9 @@ submitButton.addEventListener("click", async function()
 
         })
         .then(function(savedStory) {
-            storiesList.push(savedStory);
+            storiesList.unshift(savedStory);
             displayStory(savedStory,"top");
+            storyInput.value= "";
             postError.textContent="Story Posted";
         })
         .catch(error=>{
@@ -193,8 +196,6 @@ submitButton.addEventListener("click", async function()
      submitButton.disabled=false;
      submitButton.textContent="Submit";
     });
-
-    storyInput.value= "";
 
       });
 // create the DOM ELements

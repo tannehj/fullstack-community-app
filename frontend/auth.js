@@ -10,7 +10,7 @@ async function registerUsers(){
     
     const name = nameInput.value.trim();
     const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
+    const password = passwordInput.value;
 
     if (!name || !username || !password) {
         registerMessage.textContent = "Please fill out all fields.";

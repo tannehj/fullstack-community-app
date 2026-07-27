@@ -84,3 +84,14 @@ TEST_DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/community_app_test S
 Final result:
 -pytest: 42 passed in 3.31 seconds using an isolated PostgreSQL 17.10 test database.
 -Safety checks confirmed pytest refuses to start when TEST_DATABASE_URL is missing or matches DATABASE_URL.
+
+## frontend user flow fixes
+
+-Story input clears only after a successful POST, so failed posts keep the user's text.
+-New stories use the beginning of storiesList so search and reset keep newest-first order.
+-Story loading errors display in the page error message and remain logged in the console.
+-Registration and login preserve passwords exactly as entered while names and usernames remain trimmed.
+
+Testing:
+-JavaScript syntax checks passed for auth.js, login.js, and stories.js.
+-Backend pytest regression suite: 42 passed in 3.17 seconds.

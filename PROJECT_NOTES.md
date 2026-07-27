@@ -65,3 +65,22 @@ Manually sending PATCH/DELETE as a non-owner still gets 403 from Flask.
 2. CONFIGUGE CORS FOR GLOBAL URL
 
 3. prepare Flask to run on Render with Gunicorn
+
+## deployment testing
+
+-Added a pytest backend test suite using a dedicated PostgreSQL test database.
+-Covered registration, login/logout, malformed requests, CSRF, story creation and 1-500 limits, ownership authorization, 400/401/403/404 responses, and migration creation/idempotency.
+-TEST_DATABASE_URL is required. Tests stop before database cleanup when it is missing or points to the same database as DATABASE_URL, including localhost and 127.0.0.1 equivalents.
+-GitHub Actions runs pytest for pull requests and branch pushes with a PostgreSQL service database named community_app_test.
+
+Run locally from backend:
+
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements-dev.txt
+createdb community_app_test
+TEST_DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/community_app_test SECRET_KEY=test-secret pytest
+
+Final result:
+-pytest: 42 passed in 3.31 seconds using an isolated PostgreSQL 17.10 test database.
+-Safety checks confirmed pytest refuses to start when TEST_DATABASE_URL is missing or matches DATABASE_URL.

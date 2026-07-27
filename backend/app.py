@@ -246,15 +246,18 @@ def register():
 
 @app.route("/login", methods=["POST"])
 def app_login():
-    data=request.get_json()
+    data=request.get_json(silent=True)
 
-    if not data:
-        return jsonify({"error": "Missing JSON body."}), 400
+    if not isinstance(data, dict):
+        return jsonify({"error": "Request body must be a valid JSON object"}), 400
 
     username=data.get("username")
     password=data.get("password")
 
-    if not username or not password:
+    if not isinstance(username, str) or not isinstance(password, str):
+        return jsonify({"error": "Username and password must be strings."}), 400
+
+    if not username.strip() or not password:
         return jsonify({"error": "Username or password is missing."}), 400
 
     conn=get_db_connection()

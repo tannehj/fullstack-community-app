@@ -19,6 +19,7 @@ def test_migrations_create_schema_and_are_idempotent():
             SELECT
                 to_regclass('public.users'),
                 to_regclass('public.stories'),
+                to_regclass('public.login_rate_limits'),
                 to_regclass('public.schema_migrations')
             """
         )
@@ -30,5 +31,10 @@ def test_migrations_create_schema_and_are_idempotent():
     finally:
         conn.close()
 
-    assert tables == ("users", "stories", "schema_migrations")
-    assert migration_count == 1
+    assert tables == (
+        "users",
+        "stories",
+        "login_rate_limits",
+        "schema_migrations",
+    )
+    assert migration_count == 2

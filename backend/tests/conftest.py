@@ -16,6 +16,7 @@ sys.path.insert(0, str(BACKEND_DIRECTORY))
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ.setdefault("SECRET_KEY", "pytest-secret-key")
 os.environ.setdefault("APP_ENV", "development")
+os.environ.setdefault("TRUSTED_PROXY_COUNT", "0")
 
 import app as app_module
 import migrate
@@ -27,7 +28,14 @@ def drop_test_schema():
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "DROP TABLE IF EXISTS stories, users, schema_migrations CASCADE"
+            """
+            DROP TABLE IF EXISTS
+                login_rate_limits,
+                stories,
+                users,
+                schema_migrations
+            CASCADE
+            """
         )
         conn.commit()
         cursor.close()
@@ -51,7 +59,12 @@ def clean_database(database_schema):
 
     try:
         cursor = conn.cursor()
-        cursor.execute("TRUNCATE stories, users RESTART IDENTITY CASCADE")
+        cursor.execute(
+            """
+            TRUNCATE login_rate_limits, stories, users
+            RESTART IDENTITY CASCADE
+            """
+        )
         conn.commit()
         cursor.close()
     finally:

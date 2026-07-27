@@ -37,6 +37,13 @@ async function appLogin(event){
         })
          const data= await response.json();
         
+        if (response.status === 429) {
+        loginMessage.textContent =
+            data.error ||
+            "Too many login attempts. Please try again later.";
+        return;
+        }
+
         if (!response.ok) {
         loginMessage.textContent = data.error;
         return;

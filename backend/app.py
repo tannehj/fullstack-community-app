@@ -1,11 +1,14 @@
 # import sqlite3 #database
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import hashlib
 import hmac
+import ipaddress
 import os
 import psycopg2
 import secrets
 from dotenv import load_dotenv
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 
@@ -29,6 +32,37 @@ app.config["SESSION_COOKIE_SECURE"] = is_production
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "None" if is_production else "Lax"
 
+trusted_proxy_count_value = os.getenv("TRUSTED_PROXY_COUNT")
+
+if is_production and not trusted_proxy_count_value:
+    raise RuntimeError(
+        "TRUSTED_PROXY_COUNT environment variable is required in production"
+    )
+
+try:
+    trusted_proxy_count = int(trusted_proxy_count_value or "0")
+except ValueError as error:
+    raise RuntimeError(
+        "TRUSTED_PROXY_COUNT must be a non-negative integer"
+    ) from error
+
+if trusted_proxy_count < 0:
+    raise RuntimeError(
+        "TRUSTED_PROXY_COUNT must be a non-negative integer"
+    )
+
+if is_production and trusted_proxy_count == 0:
+    raise RuntimeError(
+        "TRUSTED_PROXY_COUNT must be at least 1 in production"
+    )
+
+if trusted_proxy_count:
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app,
+        x_for=trusted_proxy_count,
+        x_proto=trusted_proxy_count
+    )
+
 frontend_origin = os.environ.get("FRONTEND_ORIGIN")
 
 allowed_origins = [
@@ -42,6 +76,118 @@ if frontend_origin:
 CORS(app,
      origins=allowed_origins,
      supports_credentials=True)
+
+LOGIN_ACCOUNT_ATTEMPT_LIMIT = 10
+LOGIN_IP_ATTEMPT_LIMIT = 30
+LOGIN_RATE_LIMIT_WINDOW_MINUTES = 15
+LOGIN_RATE_LIMIT_ERROR = "Too many login attempts. Please try again later."
+DUMMY_PASSWORD_HASH = generate_password_hash(
+    "login-rate-limit-dummy-password"
+)
+
+
+def normalize_client_ip(client_ip):
+    if not isinstance(client_ip, str):
+        return "invalid"
+
+    client_ip = client_ip.strip()
+
+    try:
+        return ipaddress.ip_address(client_ip).compressed
+    except ValueError:
+        pass
+
+    if client_ip.startswith("[") and "]" in client_ip:
+        address = client_ip[1:client_ip.index("]")]
+
+        try:
+            return ipaddress.ip_address(address).compressed
+        except ValueError:
+            return "invalid"
+
+    address, separator, port = client_ip.rpartition(":")
+
+    if separator and port.isdigit():
+        try:
+            return ipaddress.ip_address(address).compressed
+        except ValueError:
+            return "invalid"
+
+    return "invalid"
+
+
+def get_login_rate_limit_key(bucket_type, identifier):
+    message = f"login-{bucket_type}:{identifier}".encode()
+    return hmac.new(
+        secret_key.encode(),
+        message,
+        hashlib.sha256
+    ).hexdigest()
+
+
+def record_login_attempt(cursor, bucket_type, bucket_key):
+    cursor.execute(
+        """
+        INSERT INTO login_rate_limits (
+            bucket_type,
+            bucket_key,
+            window_started_at,
+            expires_at,
+            attempt_count
+        )
+        VALUES (
+            %s,
+            %s,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP + (%s * INTERVAL '1 minute'),
+            1
+        )
+        ON CONFLICT (bucket_type, bucket_key)
+        DO UPDATE SET
+            window_started_at = CASE
+                WHEN login_rate_limits.expires_at <= CURRENT_TIMESTAMP
+                THEN CURRENT_TIMESTAMP
+                ELSE login_rate_limits.window_started_at
+            END,
+            expires_at = CASE
+                WHEN login_rate_limits.expires_at <= CURRENT_TIMESTAMP
+                THEN CURRENT_TIMESTAMP + (%s * INTERVAL '1 minute')
+                ELSE login_rate_limits.expires_at
+            END,
+            attempt_count = CASE
+                WHEN login_rate_limits.expires_at <= CURRENT_TIMESTAMP
+                THEN 1
+                ELSE login_rate_limits.attempt_count + 1
+            END
+        RETURNING
+            attempt_count,
+            GREATEST(
+                1,
+                CEIL(
+                    EXTRACT(
+                        EPOCH FROM expires_at - CURRENT_TIMESTAMP
+                    )
+                )
+            )::INTEGER
+        """,
+        (
+            bucket_type,
+            bucket_key,
+            LOGIN_RATE_LIMIT_WINDOW_MINUTES,
+            LOGIN_RATE_LIMIT_WINDOW_MINUTES
+        )
+    )
+
+    return cursor.fetchone()
+
+
+def login_rate_limit_response(retry_after):
+    response = jsonify({"error": LOGIN_RATE_LIMIT_ERROR})
+    response.status_code = 429
+    response.headers["Retry-After"] = str(retry_after)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
 
 def get_db_connection():
     database_url = os.getenv("DATABASE_URL")
@@ -260,22 +406,65 @@ def app_login():
     if not username.strip() or not password:
         return jsonify({"error": "Username or password is missing."}), 400
 
+    username=username.strip()
+    account_bucket_key=get_login_rate_limit_key("account", username)
+    client_ip=normalize_client_ip(request.remote_addr)
+    ip_bucket_key=get_login_rate_limit_key("ip", client_ip)
+
     conn=get_db_connection()
     cursor=conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM login_rate_limits WHERE expires_at <= CURRENT_TIMESTAMP"
+    )
+
+    account_attempts, account_retry_after=record_login_attempt(
+        cursor,
+        "account",
+        account_bucket_key
+    )
+    ip_attempts, ip_retry_after=record_login_attempt(
+        cursor,
+        "ip",
+        ip_bucket_key
+    )
+
+    if (
+        account_attempts > LOGIN_ACCOUNT_ATTEMPT_LIMIT
+        or ip_attempts > LOGIN_IP_ATTEMPT_LIMIT
+    ):
+        retry_after = 0
+
+        if account_attempts > LOGIN_ACCOUNT_ATTEMPT_LIMIT:
+            retry_after = account_retry_after
+
+        if ip_attempts > LOGIN_IP_ATTEMPT_LIMIT:
+            retry_after = max(retry_after, ip_retry_after)
+
+        conn.commit()
+        conn.close()
+        return login_rate_limit_response(retry_after)
 
     cursor.execute("SELECT id, password_hash FROM users WHERE username =%s", (username,) )
 
     user=cursor.fetchone()
+    password_hash=user[1] if user else DUMMY_PASSWORD_HASH
 
-    if not user:
-        conn.close()
-        return jsonify({"error": "wrong username or password"}), 401
-    if not check_password_hash(user[1], password):
+    if not check_password_hash(password_hash, password) or not user:
+        conn.commit()
         conn.close()
         return jsonify({"error": "wrong username or password"}), 401
 
     session["user_id"]=user[0]
 
+    cursor.execute(
+        """
+        DELETE FROM login_rate_limits
+        WHERE bucket_type = 'account' AND bucket_key = %s
+        """,
+        (account_bucket_key,)
+    )
+    conn.commit()
     conn.close()
     return jsonify({"message": "Login successful"}), 200
 

@@ -106,14 +106,15 @@ Testing:
 -Expired counters are removed automatically during login, and successful login clears the account counter without clearing the shared IP counter.
 -Limited requests return the same generic 429 JSON response for existing and nonexistent usernames, with Retry-After and Cache-Control: no-store headers.
 -Nonexistent usernames run a dummy password-hash check so failed-login behavior does not reveal whether an account exists.
--The login page displays the rate-limit error to the user.
+-The login page displays the backend rate-limit error and falls back to the same generic message when a 429 body is missing or malformed.
 -Production requires TRUSTED_PROXY_COUNT=1 for the direct Azure App Service proxy. Local development uses TRUSTED_PROXY_COUNT=0 and ignores forwarded client-IP headers.
 -Migration 002_login_rate_limits.sql creates the rate-limit table and expiration index.
--GitHub Actions uses its existing PostgreSQL service, sets TRUSTED_PROXY_COUNT=0, checks login.js syntax, and runs the complete pytest suite.
+-GitHub Actions uses its existing PostgreSQL service, sets TRUSTED_PROXY_COUNT=0, checks login.js syntax and 429 handling, and runs the complete pytest suite.
 
 Testing:
 -Python syntax checks passed for the backend application, migration runner, and affected tests.
 -JavaScript syntax check passed for login.js.
+-Frontend rate-limit checks: 5 passed for valid, missing, and malformed 429 bodies, unchanged non-429 errors, and successful login redirects.
 -Migration creation and idempotency passed.
 -Rate-limit tests covered account and IP limits, generic 429 headers, username normalization, successful-login reset, expiration cleanup, shared database connections, dummy password hashing, and trusted/untrusted proxy behavior.
--Backend pytest regression suite: 56 passed in 5.62 seconds using the isolated PostgreSQL test database.
+-Backend pytest regression suite: 56 passed in 5.46 seconds using the isolated PostgreSQL test database.

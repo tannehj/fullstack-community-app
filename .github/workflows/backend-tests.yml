@@ -48,4 +48,6 @@ jobs:
 
       - run: node --check ../frontend/login.js
 
+      - run: node --test ../frontend/login.test.js
+
       - run: pytest

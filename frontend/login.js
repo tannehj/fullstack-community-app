@@ -35,14 +35,27 @@ async function appLogin(event){
          },
             body: JSON.stringify(loginObject)
         })
-         const data= await response.json();
-        
+
         if (response.status === 429) {
+        let rateLimitData = {};
+
+        try {
+            rateLimitData = await response.json();
+        } catch (error) {
+            rateLimitData = {};
+        }
+
         loginMessage.textContent =
-            data.error ||
+            (
+                rateLimitData &&
+                typeof rateLimitData.error === "string" &&
+                rateLimitData.error
+            ) ||
             "Too many login attempts. Please try again later.";
         return;
         }
+
+         const data= await response.json();
 
         if (!response.ok) {
         loginMessage.textContent = data.error;

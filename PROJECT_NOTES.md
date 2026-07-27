@@ -88,10 +88,12 @@ Final result:
 ## frontend user flow fixes
 
 -Story input clears only after a successful POST, so failed posts keep the user's text.
+-CSRF token retrieval and story POST now share one promise chain so every failure shows an error and restores the Submit button.
 -New stories use the beginning of storiesList so search and reset keep newest-first order.
 -Story loading errors display in the page error message and remain logged in the console.
 -Registration and login preserve passwords exactly as entered while names and usernames remain trimmed.
 
 Testing:
 -JavaScript syntax checks passed for auth.js, login.js, and stories.js.
--Backend pytest regression suite: 42 passed in 3.17 seconds.
+-Offline CSRF failure check confirmed story text remains, a visible error appears, and the Submit button resets.
+-Backend pytest regression suite: 42 passed in 3.39 seconds.

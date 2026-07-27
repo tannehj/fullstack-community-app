@@ -166,15 +166,17 @@ submitButton.addEventListener("click", async function()
     submitButton.textContent="Posting...";
 
 
-        const csrfToken = await getCsrfToken();
-        fetch(`${API_BASE_URL}/stories`,{
-        method:"POST",
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken
-        },
-            body:JSON.stringify(storyObject)
+        getCsrfToken()
+        .then(function(csrfToken) {
+            return fetch(`${API_BASE_URL}/stories`,{
+            method:"POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
+            },
+                body:JSON.stringify(storyObject)
+            })
         })
         .then(function(response){
             if (!response.ok){

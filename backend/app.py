@@ -1,8 +1,10 @@
 # import sqlite3 #database
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import hmac
 import os
 import psycopg2
+import secrets
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
@@ -13,6 +15,19 @@ load_dotenv() #lRead the .env file and make
 
 
 app= Flask(__name__)
+
+secret_key = os.getenv("SECRET_KEY")
+
+if not secret_key:
+    raise RuntimeError("SECRET_KEY environment variable is required")
+
+app.secret_key = secret_key
+
+is_production = os.getenv("APP_ENV", "development").lower() == "production"
+
+app.config["SESSION_COOKIE_SECURE"] = is_production
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "None" if is_production else "Lax"
 
 frontend_origin = os.environ.get("FRONTEND_ORIGIN")
 
@@ -27,8 +42,6 @@ if frontend_origin:
 CORS(app,
      origins=allowed_origins,
      supports_credentials=True)
-
-app.secret_key = os.getenv("SECRET_KEY")
 
 def get_db_connection():
     database_url = os.getenv("DATABASE_URL")
@@ -56,6 +69,35 @@ def get_db_connection():
 
 
 
+
+@app.before_request
+def validate_csrf_token():
+    if request.method not in {"POST", "PATCH", "DELETE"}:
+        return None
+
+    session_token = session.get("csrf_token")
+    request_token = request.headers.get("X-CSRF-Token")
+
+    if (
+        not isinstance(session_token, str)
+        or not isinstance(request_token, str)
+        or not hmac.compare_digest(session_token, request_token)
+    ):
+        return jsonify({"error": "Invalid CSRF token"}), 403
+
+    return None
+
+@app.route("/csrf-token", methods=["GET"])
+def get_csrf_token():
+    csrf_token = session.get("csrf_token")
+
+    if not csrf_token:
+        csrf_token = secrets.token_urlsafe(32)
+        session["csrf_token"] = csrf_token
+
+    response = jsonify({"csrf_token": csrf_token})
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 #json test stories
 

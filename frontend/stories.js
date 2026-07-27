@@ -71,9 +71,11 @@ logoutButton.addEventListener("click", logout);
 
 async function logout(){
     try{
+        const csrfToken = await getCsrfToken();
         let response =await fetch(`${API_BASE_URL}/logout`, {
             method:"POST",
-            credentials: "include"
+            credentials: "include",
+            headers: {"X-CSRF-Token": csrfToken}
         })
         let data =await response.json();
         if (!response.ok){
@@ -134,7 +136,7 @@ async function initializePage(){
  initializePage()
 
 
-submitButton.addEventListener("click", function()
+submitButton.addEventListener("click", async function()
 {
 
 //cleaning the data up
@@ -162,10 +164,14 @@ submitButton.addEventListener("click", function()
     submitButton.textContent="Posting...";
 
 
+        const csrfToken = await getCsrfToken();
         fetch(`${API_BASE_URL}/stories`,{
         method:"POST",
         credentials: "include",
-        headers: {"Content-Type": "application/json"},
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken
+        },
             body:JSON.stringify(storyObject)
         })
         .then(function(response){
@@ -258,7 +264,7 @@ function setupEdit(storyElements, storyObject){
             });
 
 
-          saveButton.addEventListener("click", function(){
+          saveButton.addEventListener("click", async function(){
              //validate newText
             if (editText.value.trim() === "") {
                 return;
@@ -266,7 +272,10 @@ function setupEdit(storyElements, storyObject){
             fetch(`${API_BASE_URL}/stories/${storyObject.id}`,{
                 method: "PATCH",
                 credentials: "include",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-Token": await getCsrfToken()
+                },
                     body:JSON.stringify({story:editText.value})
             })
 
@@ -308,11 +317,12 @@ function setupDelete(storyElements, storyObject){
 
     let {deleteButton, listItem, statusElement}=storyElements;
      //acces listItem.
-     deleteButton.addEventListener("click", function() {
+     deleteButton.addEventListener("click", async function() {
 
         fetch(`${API_BASE_URL}/stories/${storyObject.id}`, {
             method: "DELETE",
-            credentials: "include"
+            credentials: "include",
+            headers: {"X-CSRF-Token": await getCsrfToken()}
         })
         .then(function(response) {
             if (!response.ok){

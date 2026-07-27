@@ -25,10 +25,14 @@ async function appLogin(event){
                 };
 
     try {
+        const csrfToken = await getCsrfToken();
         const response=await fetch (`${API_BASE_URL}/login`,{
         method:"POST",
         credentials: "include",
-         headers:{"Content-Type": "application/json"},
+         headers:{
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken
+         },
             body: JSON.stringify(loginObject)
         })
          const data= await response.json();

@@ -4,7 +4,7 @@ const isLocal =
 
 const API_BASE_URL = isLocal
   ? "http://127.0.0.1:5000"
-  : "https://your-backend-url.onrender.com";
+  : "https://community-app-randomcharacters.westus2-01.azurewebsites.net";
 
 let csrfToken = null;
 

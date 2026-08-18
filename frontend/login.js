@@ -11,7 +11,7 @@ async function appLogin(event){
     event.preventDefault();
 
     const usernameValue=username.value.trim();
-    const passwordValue =password.value.trim();
+    const passwordValue =password.value;
 
     if (usernameValue===""|| passwordValue==="")
     {
@@ -25,14 +25,38 @@ async function appLogin(event){
                 };
 
     try {
-        const response=await fetch ("http://127.0.0.1:5000/login",{
+        const csrfToken = await getCsrfToken();
+        const response=await fetch (`${API_BASE_URL}/login`,{
         method:"POST",
         credentials: "include",
-         headers:{"Content-Type": "application/json"},
+         headers:{
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken
+         },
             body: JSON.stringify(loginObject)
         })
+
+        if (response.status === 429) {
+        let rateLimitData = {};
+
+        try {
+            rateLimitData = await response.json();
+        } catch (error) {
+            rateLimitData = {};
+        }
+
+        loginMessage.textContent =
+            (
+                rateLimitData &&
+                typeof rateLimitData.error === "string" &&
+                rateLimitData.error
+            ) ||
+            "Too many login attempts. Please try again later.";
+        return;
+        }
+
          const data= await response.json();
-        
+
         if (!response.ok) {
         loginMessage.textContent = data.error;
         return;

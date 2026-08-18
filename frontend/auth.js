@@ -10,7 +10,7 @@ async function registerUsers(){
     
     const name = nameInput.value.trim();
     const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
+    const password = passwordInput.value;
 
     if (!name || !username || !password) {
         registerMessage.textContent = "Please fill out all fields.";
@@ -31,9 +31,14 @@ async function registerUsers(){
 
     try{
     // form an object to easily send across http n to backend
-        let response  = await fetch("http://127.0.0.1:5000/register",{
+        const csrfToken = await getCsrfToken();
+        let response  = await fetch(`${API_BASE_URL}/register`,{
             method: "POST",
-            headers: {"Content-Type": "application/json"}, 
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
+            },
             body:JSON.stringify(userObject)
         });
         let data =await response.json();
@@ -49,4 +54,3 @@ async function registerUsers(){
 }
     
 }
-

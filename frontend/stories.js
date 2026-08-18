@@ -35,7 +35,7 @@ function updateAuthUI(){
 
 async function loadCurrentUser(){
     try{
-        const response =await fetch("http://127.0.0.1:5000/current-user",
+        const response =await fetch(`${API_BASE_URL}/current-user`,
             {
             credentials: "include"
             }
@@ -71,9 +71,11 @@ logoutButton.addEventListener("click", logout);
 
 async function logout(){
     try{
-        let response =await fetch("http://127.0.0.1:5000/logout", {
+        const csrfToken = await getCsrfToken();
+        let response =await fetch(`${API_BASE_URL}/logout`, {
             method:"POST",
-            credentials: "include"
+            credentials: "include",
+            headers: {"X-CSRF-Token": csrfToken}
         })
         let data =await response.json();
         if (!response.ok){
@@ -98,7 +100,7 @@ async function loadStories(){
             // load the stories from the database after a refresh
             // and populate the page
 
-            let response= await fetch("http://127.0.0.1:5000/stories", {
+            let response= await fetch(`${API_BASE_URL}/stories`, {
                  credentials: "include"});
             let stories = await response.json();
 
@@ -117,6 +119,8 @@ async function loadStories(){
         }
      }  catch(error){
             console.log("Error loading stories:", error);
+            errorMessage.textContent =
+                error.message || "Could not load stories.";
 
         }
 
@@ -134,7 +138,7 @@ async function initializePage(){
  initializePage()
 
 
-submitButton.addEventListener("click", function()
+submitButton.addEventListener("click", async function()
 {
 
 //cleaning the data up
@@ -162,11 +166,17 @@ submitButton.addEventListener("click", function()
     submitButton.textContent="Posting...";
 
 
-        fetch("http://127.0.0.1:5000/stories",{
-        method:"POST",
-        credentials: "include",
-        headers: {"Content-Type": "application/json"},
-            body:JSON.stringify(storyObject)
+        getCsrfToken()
+        .then(function(csrfToken) {
+            return fetch(`${API_BASE_URL}/stories`,{
+            method:"POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
+            },
+                body:JSON.stringify(storyObject)
+            })
         })
         .then(function(response){
             if (!response.ok){
@@ -176,8 +186,9 @@ submitButton.addEventListener("click", function()
 
         })
         .then(function(savedStory) {
-            storiesList.push(savedStory);
+            storiesList.unshift(savedStory);
             displayStory(savedStory,"top");
+            storyInput.value= "";
             postError.textContent="Story Posted";
         })
         .catch(error=>{
@@ -187,8 +198,6 @@ submitButton.addEventListener("click", function()
      submitButton.disabled=false;
      submitButton.textContent="Submit";
     });
-
-    storyInput.value= "";
 
       });
 // create the DOM ELements
@@ -258,15 +267,18 @@ function setupEdit(storyElements, storyObject){
             });
 
 
-          saveButton.addEventListener("click", function(){
+          saveButton.addEventListener("click", async function(){
              //validate newText
             if (editText.value.trim() === "") {
                 return;
             }
-            fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`,{
+            fetch(`${API_BASE_URL}/stories/${storyObject.id}`,{
                 method: "PATCH",
                 credentials: "include",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-Token": await getCsrfToken()
+                },
                     body:JSON.stringify({story:editText.value})
             })
 
@@ -308,11 +320,12 @@ function setupDelete(storyElements, storyObject){
 
     let {deleteButton, listItem, statusElement}=storyElements;
      //acces listItem.
-     deleteButton.addEventListener("click", function() {
+     deleteButton.addEventListener("click", async function() {
 
-        fetch(`http://127.0.0.1:5000/stories/${storyObject.id}`, {
+        fetch(`${API_BASE_URL}/stories/${storyObject.id}`, {
             method: "DELETE",
-            credentials: "include"
+            credentials: "include",
+            headers: {"X-CSRF-Token": await getCsrfToken()}
         })
         .then(function(response) {
             if (!response.ok){

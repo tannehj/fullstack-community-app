@@ -8,8 +8,11 @@ on:
   push:
     branches:
       - chore/prepare-production-deployment
+    paths:
+      - "backend/**"
+      - ".github/workflows/chore-prepare-production-deployment_community-app.yml"
   workflow_dispatch:
-
+  
 jobs:
   build:
     runs-on: ubuntu-latest

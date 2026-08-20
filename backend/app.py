@@ -17,7 +17,15 @@ load_dotenv() #lRead the .env file and make
 
 
 
-app= Flask(__name__)
+frontend_directory = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "frontend")
+)
+
+app = Flask(
+    __name__,
+    static_folder=frontend_directory,
+    static_url_path=""
+)
 
 secret_key = os.getenv("SECRET_KEY")
 
@@ -85,7 +93,10 @@ DUMMY_PASSWORD_HASH = generate_password_hash(
     "login-rate-limit-dummy-password"
 )
 
-
+@app.route("/", methods=["GET"])
+def serve_frontend():
+    return app.send_static_file("index.html")
+    
 def normalize_client_ip(client_ip):
     if not isinstance(client_ip, str):
         return "invalid"

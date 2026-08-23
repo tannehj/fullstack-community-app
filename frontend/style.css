@@ -1,16 +1,16 @@
 :root {
-    --page: #f4f7fb;
-    --surface: #ffffff;
-    --surface-soft: #eef3ff;
-    --ink: #172033;
-    --muted: #667085;
-    --line: #dde3ed;
-    --primary: #5b5ce2;
-    --primary-dark: #4849c5;
-    --accent: #8b5cf6;
+    --page: #f5f3ee;
+    --surface: #fffdf9;
+    --surface-soft: #e6f0ec;
+    --ink: #18332e;
+    --muted: #6d7774;
+    --line: #dce3df;
+    --primary: #1f6b5c;
+    --primary-dark: #164f45;
+    --accent: #df7658;
     --success: #087a55;
     --danger: #b42318;
-    --shadow: 0 18px 45px rgba(32, 45, 85, 0.10);
+    --shadow: 0 18px 44px rgba(42, 65, 59, 0.09);
 }
 
 * {
@@ -46,7 +46,7 @@ textarea {
 input:focus,
 textarea:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(91, 92, 226, 0.12);
+    box-shadow: 0 0 0 4px rgba(31, 107, 92, 0.12);
 }
 
 button {
@@ -74,11 +74,11 @@ button:disabled {
 .button-primary {
     color: #fff;
     background: linear-gradient(135deg, var(--primary), var(--accent));
-    box-shadow: 0 8px 20px rgba(91, 92, 226, 0.24);
+    box-shadow: 0 8px 20px rgba(31, 107, 92, 0.22);
 }
 
 .button-primary:hover:not(:disabled) {
-    box-shadow: 0 10px 24px rgba(91, 92, 226, 0.32);
+    box-shadow: 0 10px 24px rgba(31, 107, 92, 0.28);
 }
 
 .button-quiet {
@@ -102,8 +102,8 @@ button:disabled {
 .stories-page {
     padding: 0;
     background:
-        radial-gradient(circle at 8% 10%, rgba(139, 92, 246, 0.12), transparent 28%),
-        radial-gradient(circle at 88% 4%, rgba(91, 92, 226, 0.13), transparent 25%),
+        radial-gradient(circle at 8% 10%, rgba(223, 118, 88, 0.11), transparent 28%),
+        radial-gradient(circle at 88% 4%, rgba(31, 107, 92, 0.13), transparent 25%),
         var(--page);
 }
 
@@ -140,8 +140,8 @@ button:disabled {
     place-items: center;
     border-radius: 11px;
     color: #fff;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    box-shadow: 0 7px 16px rgba(91, 92, 226, 0.22);
+    background: var(--primary);
+    box-shadow: 0 7px 16px rgba(31, 107, 92, 0.20);
 }
 
 .site-nav {
@@ -214,7 +214,7 @@ button:disabled {
     padding: 18px;
     display: flex;
     gap: 14px;
-    border: 1px solid rgba(91, 92, 226, 0.15);
+    border: 1px solid rgba(31, 107, 92, 0.16);
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.68);
 }
@@ -277,7 +277,7 @@ button:disabled {
     place-items: center;
     flex: 0 0 auto;
     color: #fff;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
+    background: var(--primary);
     font-weight: 800;
 }
 
@@ -350,25 +350,27 @@ button:disabled {
 .story-list {
     margin: 0;
     padding: 0;
-    display: grid;
-    gap: 16px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 253, 249, 0.78);
 }
 
 .story-card {
     position: relative;
     list-style: none;
-    padding: 24px;
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 8px 26px rgba(32, 45, 85, 0.06);
-    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    padding: 26px 28px;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    transition: background 180ms ease;
+}
+
+.story-card:last-child {
+    border-bottom: 0;
 }
 
 .story-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(91, 92, 226, 0.28);
-    box-shadow: 0 14px 34px rgba(32, 45, 85, 0.10);
+    background: rgba(230, 240, 236, 0.52);
 }
 
 .story-header {
@@ -402,7 +404,7 @@ button:disabled {
 
 .story-text {
     margin: 0;
-    color: #344054;
+    color: #38514b;
     line-height: 1.7;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -423,10 +425,10 @@ button:disabled {
 .story-actions button,
 .story-card > button {
     padding: 8px 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    color: #475467;
-    background: #f8f9fc;
+    border: 0;
+    border-radius: 9px;
+    color: #49615b;
+    background: rgba(230, 240, 236, 0.72);
     font-size: 12px;
     font-weight: 800;
 }
@@ -434,7 +436,7 @@ button:disabled {
 .story-actions button:hover,
 .story-card > button:hover {
     color: var(--primary-dark);
-    border-color: rgba(91, 92, 226, 0.35);
+    border-color: rgba(31, 107, 92, 0.30);
     background: var(--surface-soft);
 }
 

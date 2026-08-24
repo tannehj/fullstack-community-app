@@ -1,34 +1,95 @@
 <!DOCTYPE html>
-<html>
-    <head> <title> a community for anyone feeling lonely</title>
-    <link rel="stylesheet" href="style.css"> </head>
-     
-    <body> <h1> WELCOME</h1>
-           
-        <p>Share your experiences and read stories from others.</p>
-        <p id="errorMessage"></p>
-        <p id ="message"></p>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Stories</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="stories-page">
+    <header class="site-header">
+        <a class="brand" href="stories.html" aria-label="Community home">
+            <span class="brand-mark">C</span>
+            <span>Community</span>
+        </a>
 
-    <div id="auth-card" class="auth-card">
-    <p id="auth-message">Checking login status...</p>
-    </div>
-       
-        <input id ="searchInput" 
-        type ="text" placeholder= 
-        "Search stories...">
+        <nav class="site-nav" aria-label="Account navigation">
+            <div id="auth-card" class="auth-card">
+                <span id="auth-message">Checking login status...</span>
+            </div>
+            <a href="login.html" id="login-link" class="nav-link">Log in</a>
+            <button id="logout-button" class="button button-quiet" type="button">Log out</button>
+        </nav>
+    </header>
 
-        <textarea id= "storyInput" placeholder= "write your story here" maxlength="500"></textarea>
+    <main class="app-layout">
+        <aside class="welcome-panel">
+            <span class="eyebrow">A space to be heard</span>
+            <h1>Real stories.<br>Real connection.</h1>
+            <p>Share what is on your mind and connect through the experiences of others.</p>
 
-        <p id ="charCounter">0/500</p>
-        <button id= "submitButton"> Submit</button>
-        <h2>Recent Stories</h2>
-        <ul id ="storyList"></ul>
-        <a href="login.html" id="login-link">Login</a>
-        <button id="logout-button">Logout</button>
-        
-        <script src="config.js"></script>
-        <script src="stories.js?v=2"></script>
+            <div class="community-note">
+                <span class="community-note-icon" aria-hidden="true">♥</span>
+                <div>
+                    <strong>You belong here</strong>
+                    <span>Every story adds something meaningful to this community.</span>
+                </div>
+            </div>
+        </aside>
 
+        <section class="content-column" aria-label="Community stories">
+            <div id="errorMessage" class="notice notice-error" role="alert"></div>
+            <div id="message" class="notice notice-success" role="status"></div>
+
+            <section class="composer-card" aria-labelledby="composer-title">
+                <div class="section-heading">
+                    <div>
+                        <span class="eyebrow">Create a post</span>
+                        <h2 id="composer-title">Share your story</h2>
+                    </div>
+                    <span class="composer-avatar" aria-hidden="true">You</span>
+                </div>
+
+                <label class="visually-hidden" for="storyInput">Write your story</label>
+                <textarea
+                    id="storyInput"
+                    placeholder="What would you like to share?"
+                    maxlength="500"
+                ></textarea>
+
+                <div class="composer-footer">
+                    <p id="charCounter">0 / 500</p>
+                    <button id="submitButton" class="button button-primary" type="button">
+                        Post story
+                    </button>
+                </div>
+            </section>
+
+            <section class="feed-section" aria-labelledby="feed-title">
+                <div class="feed-header">
+                    <div>
+                        <span class="eyebrow">Community feed</span>
+                        <h2 id="feed-title">Recent stories</h2>
+                    </div>
+
+                    <div class="search-box">
+                        <span class="search-icon" aria-hidden="true">⌕</span>
+                        <label class="visually-hidden" for="searchInput">Search stories</label>
+                        <input
+                            id="searchInput"
+                            type="search"
+                            placeholder="Search stories"
+                            autocomplete="off"
+                        >
+                    </div>
+                </div>
+
+                <ul id="storyList" class="story-list" aria-live="polite"></ul>
+            </section>
+        </section>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="stories.js?v=3"></script>
 </body>
-
 </html>

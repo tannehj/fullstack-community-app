@@ -196,50 +196,65 @@ submitButton.addEventListener("click", async function()
             postError.textContent="Could not post story.";
     }) .finally(()=>{
      submitButton.disabled=false;
-     submitButton.textContent="Submit";
+     submitButton.textContent="Post story";
     });
 
       });
 // create the DOM ELements
 function createStoryElements(storyObject, isOwner){
-    //create li
-     let listItem=document.createElement("li");
-     listItem.classList.add("story-card");
+    let listItem = document.createElement("li");
+    listItem.classList.add("story-card");
 
-     //name card
-     let userName= document.createElement("h3");
-     userName.textContent=storyObject.name;
+    let storyHeader = document.createElement("div");
+    storyHeader.classList.add("story-header");
 
-     let storyTextElement= document.createElement("p");
-     storyTextElement.textContent=storyObject.story;
+    let avatar = document.createElement("span");
+    avatar.classList.add("story-avatar");
+    avatar.setAttribute("aria-hidden", "true");
+    avatar.textContent = (storyObject.name || "?").trim().charAt(0).toUpperCase();
 
+    let storyMeta = document.createElement("div");
+    storyMeta.classList.add("story-meta");
 
-     let editButton= document.createElement("button");
-     editButton.textContent ="EDIT";
+    let userName = document.createElement("h3");
+    userName.textContent = storyObject.name;
 
-     // create the delete button
-     let deleteButton =document.createElement("button");
-     deleteButton.textContent="DELETE";
+    let timeElement = document.createElement("p");
+    timeElement.classList.add("story-time");
+    timeElement.textContent = formatTime(storyObject.created_at);
 
-     let TimeElement=document.createElement("p")
-     TimeElement.textContent= formatTime(storyObject.created_at);
+    let storyTextElement = document.createElement("p");
+    storyTextElement.classList.add("story-text");
+    storyTextElement.textContent = storyObject.story;
 
-     let statusElement=document.createElement("p");
+    let statusElement = document.createElement("p");
+    statusElement.classList.add("story-status");
 
+    storyMeta.appendChild(userName);
+    storyMeta.appendChild(timeElement);
+    storyHeader.appendChild(avatar);
+    storyHeader.appendChild(storyMeta);
+    listItem.appendChild(storyHeader);
+    listItem.appendChild(storyTextElement);
+    listItem.appendChild(statusElement);
 
-     listItem.appendChild(userName);
-     listItem.appendChild(TimeElement)
-     listItem.appendChild(storyTextElement);
-     listItem.appendChild(statusElement);
+    let editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.textContent = "Edit";
 
+    let deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.textContent = "Delete";
 
     if (isOwner){
-     listItem.appendChild(deleteButton);
-     listItem.appendChild(editButton);
+        let storyActions = document.createElement("div");
+        storyActions.classList.add("story-actions");
+        storyActions.appendChild(editButton);
+        storyActions.appendChild(deleteButton);
+        listItem.appendChild(storyActions);
     }
 
-
-    return{listItem, statusElement, storyTextElement, editButton,deleteButton};
+    return {listItem, statusElement, storyTextElement, editButton, deleteButton};
 }
 //creating story
 function setupEdit(storyElements, storyObject){

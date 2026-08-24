@@ -1,16 +1,16 @@
 :root {
-    --page: #eef0df;
-    --surface: #fffdf5;
-    --surface-soft: #e8ebcf;
-    --ink: #252d18;
-    --muted: #697052;
-    --line: #d8dcc1;
+    --page: #f3eee7;
+    --surface: #fffaf2;
+    --surface-soft: #edf0dc;
+    --ink: #251211;
+    --muted: #756f7b;
+    --line: #ddd4cf;
     --primary: #9eab57;
-    --primary-dark: #53602f;
-    --accent: #c99379;
+    --primary-dark: #353b56;
+    --accent: #fbb45e;
     --success: #087a55;
     --danger: #b42318;
-    --shadow: 0 18px 44px rgba(63, 73, 44, 0.10);
+    --shadow: 0 18px 44px rgba(37, 18, 17, 0.10);
 }
 
 * {
@@ -370,7 +370,7 @@ button:disabled {
 }
 
 .story-card:hover {
-    background: rgba(232, 235, 207, 0.52);
+    background: rgba(237, 240, 220, 0.52);
 }
 
 .story-header {
@@ -404,7 +404,7 @@ button:disabled {
 
 .story-text {
     margin: 0;
-    color: #4f5940;
+    color: #453a42;
     line-height: 1.7;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -427,8 +427,8 @@ button:disabled {
     padding: 8px 12px;
     border: 0;
     border-radius: 9px;
-    color: #596249;
-    background: rgba(232, 235, 207, 0.72);
+    color: #655c67;
+    background: rgba(237, 240, 220, 0.72);
     font-size: 12px;
     font-weight: 800;
 }
@@ -571,4 +571,109 @@ body:not(.stories-page) button {
     .story-card {
         padding: 20px;
     }
+}
+
+
+/* Earth-and-sunset identity */
+.site-header {
+    border-bottom-color: rgba(255, 255, 255, 0.10);
+    background: rgba(53, 59, 86, 0.96);
+}
+
+.brand,
+.nav-link {
+    color: #fffaf2;
+}
+
+.brand-mark {
+    color: #251211;
+    background: #9eab57;
+    box-shadow: none;
+}
+
+.auth-card {
+    color: #251211;
+    background: #fbb45e;
+}
+
+.site-header .button-quiet {
+    color: #fffaf2;
+    background: rgba(255, 255, 255, 0.10);
+}
+
+.site-header .button-quiet:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.welcome-panel .eyebrow,
+.feed-header .eyebrow {
+    color: #a85f4f;
+}
+
+.welcome-panel h1,
+.feed-header h2,
+.section-heading h2 {
+    color: #353b56;
+}
+
+.community-note {
+    border-color: rgba(201, 147, 121, 0.44);
+    background: rgba(255, 250, 242, 0.76);
+}
+
+.community-note-icon {
+    color: #251211;
+    background: #fbb45e;
+}
+
+.composer-card {
+    border-color: rgba(201, 147, 121, 0.34);
+    background: rgba(255, 250, 242, 0.94);
+}
+
+.composer-card .eyebrow {
+    color: #9a584b;
+}
+
+.composer-avatar,
+.story-avatar {
+    color: #251211;
+    background: #9eab57;
+}
+
+.button-primary {
+    color: #fffaf2;
+    background: #353b56;
+    box-shadow: 0 8px 20px rgba(53, 59, 86, 0.22);
+}
+
+.button-primary:hover:not(:disabled) {
+    background: #251211;
+    box-shadow: 0 10px 24px rgba(37, 18, 17, 0.22);
+}
+
+.story-list {
+    border-color: rgba(125, 117, 133, 0.30);
+    background: rgba(255, 250, 242, 0.82);
+}
+
+.story-card {
+    border-bottom-color: rgba(125, 117, 133, 0.24);
+}
+
+.story-card:hover {
+    background: rgba(251, 180, 94, 0.10);
+}
+
+.story-actions button,
+.story-card > button {
+    color: #353b56;
+    background: rgba(201, 147, 121, 0.16);
+}
+
+.story-actions button:hover,
+.story-card > button:hover {
+    color: #251211;
+    border-color: transparent;
+    background: rgba(251, 180, 94, 0.32);
 }

@@ -1,16 +1,16 @@
 :root {
-    --page: #f5f3ee;
-    --surface: #fffdf9;
-    --surface-soft: #e6f0ec;
-    --ink: #18332e;
-    --muted: #6d7774;
-    --line: #dce3df;
-    --primary: #1f6b5c;
-    --primary-dark: #164f45;
-    --accent: #df7658;
+    --page: #e9eadb;
+    --surface: #fbfaf3;
+    --surface-soft: #e1e5cd;
+    --ink: #303923;
+    --muted: #69705a;
+    --line: #d3d8c0;
+    --primary: #667449;
+    --primary-dark: #465333;
+    --accent: #b8794d;
     --success: #087a55;
     --danger: #b42318;
-    --shadow: 0 18px 44px rgba(42, 65, 59, 0.09);
+    --shadow: 0 18px 44px rgba(63, 73, 44, 0.10);
 }
 
 * {
@@ -46,7 +46,7 @@ textarea {
 input:focus,
 textarea:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(31, 107, 92, 0.12);
+    box-shadow: 0 0 0 4px rgba(102, 116, 73, 0.12);
 }
 
 button {
@@ -74,11 +74,11 @@ button:disabled {
 .button-primary {
     color: #fff;
     background: linear-gradient(135deg, var(--primary), var(--accent));
-    box-shadow: 0 8px 20px rgba(31, 107, 92, 0.22);
+    box-shadow: 0 8px 20px rgba(102, 116, 73, 0.22);
 }
 
 .button-primary:hover:not(:disabled) {
-    box-shadow: 0 10px 24px rgba(31, 107, 92, 0.28);
+    box-shadow: 0 10px 24px rgba(102, 116, 73, 0.28);
 }
 
 .button-quiet {
@@ -102,8 +102,8 @@ button:disabled {
 .stories-page {
     padding: 0;
     background:
-        radial-gradient(circle at 8% 10%, rgba(223, 118, 88, 0.11), transparent 28%),
-        radial-gradient(circle at 88% 4%, rgba(31, 107, 92, 0.13), transparent 25%),
+        radial-gradient(circle at 8% 10%, rgba(184, 121, 77, 0.11), transparent 28%),
+        radial-gradient(circle at 88% 4%, rgba(102, 116, 73, 0.13), transparent 25%),
         var(--page);
 }
 
@@ -141,7 +141,7 @@ button:disabled {
     border-radius: 11px;
     color: #fff;
     background: var(--primary);
-    box-shadow: 0 7px 16px rgba(31, 107, 92, 0.20);
+    box-shadow: 0 7px 16px rgba(102, 116, 73, 0.20);
 }
 
 .site-nav {
@@ -214,7 +214,7 @@ button:disabled {
     padding: 18px;
     display: flex;
     gap: 14px;
-    border: 1px solid rgba(31, 107, 92, 0.16);
+    border: 1px solid rgba(102, 116, 73, 0.16);
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.68);
 }
@@ -353,7 +353,7 @@ button:disabled {
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 18px;
-    background: rgba(255, 253, 249, 0.78);
+    background: rgba(251, 250, 243, 0.78);
 }
 
 .story-card {
@@ -370,7 +370,7 @@ button:disabled {
 }
 
 .story-card:hover {
-    background: rgba(230, 240, 236, 0.52);
+    background: rgba(225, 229, 205, 0.52);
 }
 
 .story-header {
@@ -404,7 +404,7 @@ button:disabled {
 
 .story-text {
     margin: 0;
-    color: #38514b;
+    color: #4f5940;
     line-height: 1.7;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -427,8 +427,8 @@ button:disabled {
     padding: 8px 12px;
     border: 0;
     border-radius: 9px;
-    color: #49615b;
-    background: rgba(230, 240, 236, 0.72);
+    color: #596249;
+    background: rgba(225, 229, 205, 0.72);
     font-size: 12px;
     font-weight: 800;
 }
@@ -436,7 +436,7 @@ button:disabled {
 .story-actions button:hover,
 .story-card > button:hover {
     color: var(--primary-dark);
-    border-color: rgba(31, 107, 92, 0.30);
+    border-color: rgba(102, 116, 73, 0.30);
     background: var(--surface-soft);
 }
 

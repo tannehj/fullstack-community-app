@@ -1,13 +1,13 @@
 :root {
-    --page: #e9eadb;
-    --surface: #fbfaf3;
-    --surface-soft: #e1e5cd;
-    --ink: #303923;
-    --muted: #69705a;
-    --line: #d3d8c0;
-    --primary: #667449;
-    --primary-dark: #465333;
-    --accent: #b8794d;
+    --page: #eef0df;
+    --surface: #fffdf5;
+    --surface-soft: #e8ebcf;
+    --ink: #252d18;
+    --muted: #697052;
+    --line: #d8dcc1;
+    --primary: #9eab57;
+    --primary-dark: #53602f;
+    --accent: #c99379;
     --success: #087a55;
     --danger: #b42318;
     --shadow: 0 18px 44px rgba(63, 73, 44, 0.10);
@@ -46,7 +46,7 @@ textarea {
 input:focus,
 textarea:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(102, 116, 73, 0.12);
+    box-shadow: 0 0 0 4px rgba(158, 171, 87, 0.12);
 }
 
 button {
@@ -73,12 +73,12 @@ button:disabled {
 
 .button-primary {
     color: #fff;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    box-shadow: 0 8px 20px rgba(102, 116, 73, 0.22);
+    background: var(--primary-dark);
+    box-shadow: 0 8px 20px rgba(158, 171, 87, 0.22);
 }
 
 .button-primary:hover:not(:disabled) {
-    box-shadow: 0 10px 24px rgba(102, 116, 73, 0.28);
+    box-shadow: 0 10px 24px rgba(158, 171, 87, 0.28);
 }
 
 .button-quiet {
@@ -103,7 +103,7 @@ button:disabled {
     padding: 0;
     background:
         radial-gradient(circle at 8% 10%, rgba(184, 121, 77, 0.11), transparent 28%),
-        radial-gradient(circle at 88% 4%, rgba(102, 116, 73, 0.13), transparent 25%),
+        radial-gradient(circle at 88% 4%, rgba(158, 171, 87, 0.13), transparent 25%),
         var(--page);
 }
 
@@ -141,7 +141,7 @@ button:disabled {
     border-radius: 11px;
     color: #fff;
     background: var(--primary);
-    box-shadow: 0 7px 16px rgba(102, 116, 73, 0.20);
+    box-shadow: 0 7px 16px rgba(158, 171, 87, 0.20);
 }
 
 .site-nav {
@@ -214,7 +214,7 @@ button:disabled {
     padding: 18px;
     display: flex;
     gap: 14px;
-    border: 1px solid rgba(102, 116, 73, 0.16);
+    border: 1px solid rgba(158, 171, 87, 0.16);
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.68);
 }
@@ -370,7 +370,7 @@ button:disabled {
 }
 
 .story-card:hover {
-    background: rgba(225, 229, 205, 0.52);
+    background: rgba(232, 235, 207, 0.52);
 }
 
 .story-header {
@@ -428,7 +428,7 @@ button:disabled {
     border: 0;
     border-radius: 9px;
     color: #596249;
-    background: rgba(225, 229, 205, 0.72);
+    background: rgba(232, 235, 207, 0.72);
     font-size: 12px;
     font-weight: 800;
 }
@@ -436,7 +436,7 @@ button:disabled {
 .story-actions button:hover,
 .story-card > button:hover {
     color: var(--primary-dark);
-    border-color: rgba(102, 116, 73, 0.30);
+    border-color: rgba(158, 171, 87, 0.30);
     background: var(--surface-soft);
 }
 

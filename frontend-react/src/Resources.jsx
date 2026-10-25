@@ -55,7 +55,7 @@ function Resources() {
       <form className="resource-form" onSubmit={handleSubmit} noValidate>
         <label htmlFor="resource-url">Document or article link</label>
         <p id="resource-help">
-          Paste an HTTPS article link from USCIS, USA.gov, or IRS.gov. PDF and topic search support come later.
+            Insert document links
         </p>
         <div className="resource-input-row">
           <input

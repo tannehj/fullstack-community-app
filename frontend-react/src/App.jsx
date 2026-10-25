@@ -1,4 +1,5 @@
 import Community from './Community.jsx'
+import Resources from './Resources.jsx'
 
 import { useState } from 'react'
 
@@ -9,7 +10,7 @@ const sections = {
   },
   resources: {
     title: 'Resources',
-    description: 'Find clear explanations of immigration and tax topics.',
+    description: 'Find documents and articles explained in simple language.',
   },
   directory: {
     title: 'Directory',
@@ -44,6 +45,8 @@ function App() {
       <main>
         {activeSection === 'community' ? (
           <Community />
+        ) : activeSection === 'resources' ? (
+          <Resources />
         ) : (
           <section>
             <h2>{currentSection.title}</h2>

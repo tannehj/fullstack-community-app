@@ -49,8 +49,7 @@ function Resources() {
     <section aria-labelledby="resources-heading">
       <h2 id="resources-heading">Resources</h2>
       <p>
-        Find documents and articles, understand them in simple language,
-        and explore the original source.
+        Break down complex documents into simpler English.
       </p>
 
       <form className="resource-form" onSubmit={handleSubmit} noValidate>

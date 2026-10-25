@@ -93,6 +93,19 @@ function Resources() {
             Open original website ↗
           </a>
           <p>Retrieved: {new Date(source.retrieved_at).toLocaleString()}</p>
+          <div aria-live="polite">
+            <h4>Short, easy-English summary</h4>
+            {source.summary ? (
+              <>
+                {source.summary.split('\n\n').map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+                <small>AI-generated from this source. Check the original for important details.</small>
+              </>
+            ) : (
+              <p role="status">{source.summary_error || 'No AI summary is available for this source.'}</p>
+            )}
+          </div>
           <button
             type="button"
             className="share-story-button"

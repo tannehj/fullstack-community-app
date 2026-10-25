@@ -7,6 +7,7 @@ from urllib.request import Request, HTTPRedirectHandler, build_opener
 import socket
 
 from flask import Blueprint, jsonify, request
+from summary import SummaryError, summarize_source
 
 ALLOWED_HOSTS = {"www.uscis.gov", "uscis.gov", "www.usa.gov", "usa.gov", "www.irs.gov", "irs.gov"}
 MAX_BYTES = 2_000_000
@@ -110,7 +111,12 @@ def source():
     if not isinstance(data, dict):
         return jsonify(error="Send a JSON object containing a source URL."), 400
     try:
-        return jsonify(retrieve_source(data.get("url")))
+        document = retrieve_source(data.get("url"))
+        try:
+            document["summary"] = summarize_source(document)
+        except SummaryError as error:
+            document["summary_error"] = str(error)
+        return jsonify(document)
     except SourceError as error:
         return jsonify(error=str(error)), 400
     except (OSError, TimeoutError):

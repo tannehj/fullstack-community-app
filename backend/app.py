@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
+from resources import resources
 
 load_dotenv() #lRead the .env file and make
 #those variables available to my program.
@@ -33,6 +34,7 @@ if not secret_key:
     raise RuntimeError("SECRET_KEY environment variable is required")
 
 app.secret_key = secret_key
+app.register_blueprint(resources)
 
 is_production = os.getenv("APP_ENV", "development").lower() == "production"
 

@@ -184,3 +184,28 @@ section p {
 .resource-form .resource-error {
   color: #a12424;
 }
+
+
+.resource-source {
+  margin-top: 28px;
+  overflow-wrap: anywhere;
+}
+
+.resource-source a {
+  color: #28765b;
+}
+
+.resource-reader {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #dde5dd;
+}
+
+.resource-reader p + p {
+  margin-top: 12px;
+}
+
+.resource-input-row button:disabled {
+  opacity: .6;
+  cursor: wait;
+}

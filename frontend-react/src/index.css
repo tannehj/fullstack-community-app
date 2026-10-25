@@ -132,3 +132,55 @@ section p {
   font-size: 16px;
   resize: vertical;
 }
+
+.resource-form {
+  margin-top: 24px;
+}
+
+.resource-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.resource-input-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.resource-input-row input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #c8d5cd;
+  border-radius: 12px;
+  background: #fafbf9;
+  color: #183c32;
+  font: inherit;
+  font-size: 16px;
+}
+
+.resource-input-row button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 999px;
+  background: #183c32;
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+
+.resource-input-row :focus-visible {
+  outline: 3px solid #28765b;
+  outline-offset: 3px;
+}
+
+.resource-form .resource-note {
+  margin-bottom: 12px;
+}
+
+.resource-form .resource-error {
+  color: #a12424;
+}

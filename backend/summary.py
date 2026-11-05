@@ -7,7 +7,7 @@ import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
-MAX_SOURCE_CHARS = 60_000
+MAX_SOURCE_CHARS = 16_000
 _cache = {}
 _attempts = []
 _lock = threading.Lock()
@@ -34,13 +34,13 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def summarize_source(source):
-    key = os.getenv('OPENAI_API_KEY', '').strip()
+    key = os.getenv('GROQ_API_KEY', '').strip()
     if not key:
-        raise SummaryError('AI summaries are not configured yet. Add OPENAI_API_KEY to the backend environment; you can still read the source below.')
+        raise SummaryError('AI summaries are not configured yet. Add GROQ_API_KEY to the backend environment; you can still read the source below.')
     text = source['text']
     if len(text) > MAX_SOURCE_CHARS:
         raise SummaryError('This document is too long for a short summary right now. Please use the original source or try a shorter article.')
-    model = os.getenv('OPENAI_SUMMARY_MODEL', 'gpt-4.1-mini').strip()
+    model = os.getenv('GROQ_SUMMARY_MODEL', 'openai/gpt-oss-20b').strip()
     digest = hashlib.sha256((model + INSTRUCTIONS + json.dumps({'title': source['title'], 'url': source['url'], 'text': text}, sort_keys=True)).encode()).hexdigest()
     now = time.monotonic()
     with _lock:
@@ -53,12 +53,17 @@ def summarize_source(source):
         _attempts.append(now)
     payload = json.dumps({
         'model': model,
-        'instructions': INSTRUCTIONS,
-        'input': json.dumps({'title': source['title'], 'url': source['url'], 'source_text': text}),
-        'max_output_tokens': 700,
-        'store': False,
+        'messages': [
+            {'role': 'system', 'content': INSTRUCTIONS},
+            {'role': 'user', 'content': json.dumps({
+                'title': source['title'], 'url': source['url'], 'source_text': text,
+            })},
+        ],
+        'max_completion_tokens': 2048,
+        'reasoning_effort': 'low',
+        'include_reasoning': False,
     }).encode()
-    req = Request('https://api.openai.com/v1/responses', data=payload, method='POST',
+    req = Request('https://api.groq.com/openai/v1/chat/completions', data=payload, method='POST',
                   headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'})
     try:
         with build_opener(NoRedirect()).open(req, timeout=35) as response:
@@ -72,20 +77,19 @@ def summarize_source(source):
         if status in (401, 403):
             raise SummaryError('The AI service could not authenticate. Check the backend API key and model access.') from None
         if status == 429:
-            raise SummaryError('The AI service limit was reached. Check API billing or try again later.') from None
+            raise SummaryError("Groq request or token limit was reached. Wait a minute and try a shorter article.") from None
         raise SummaryError('The AI service could not generate a summary. Please try again later.') from None
     except (URLError, OSError, TimeoutError, ValueError):
         raise SummaryError('The AI service did not return a readable response. Please try again later.') from None
-    if not isinstance(result, dict) or result.get('status') != 'completed':
-        raise SummaryError('The AI summary was not completed. Please try again.')
-    paragraphs = []
-    for item in result.get('output', []):
-        if not isinstance(item, dict) or item.get('type') != 'message':
-            continue
-        for part in item.get('content', []):
-            if isinstance(part, dict) and part.get('type') == 'output_text' and isinstance(part.get('text'), str):
-                paragraphs.append(part['text'])
-    summary = '\n\n'.join(paragraphs).strip()
+    choices = result.get('choices') if isinstance(result, dict) else None
+    if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
+        raise SummaryError('The AI service returned no summary. You can still read the source below.')
+    choice = choices[0]
+    if choice.get('finish_reason') != 'stop':
+        raise SummaryError('The AI summary was not completed. Please try a shorter article.')
+    message = choice.get('message')
+    content = message.get('content') if isinstance(message, dict) else None
+    summary = content.strip() if isinstance(content, str) else ''
     if not summary:
         raise SummaryError('The AI service returned no summary. You can still read the source below.')
     with _lock:

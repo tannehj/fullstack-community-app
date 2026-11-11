@@ -64,7 +64,12 @@ def summarize_source(source):
         'include_reasoning': False,
     }).encode()
     req = Request('https://api.groq.com/openai/v1/chat/completions', data=payload, method='POST',
-                  headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'})
+                  headers={
+        'Authorization': 'Bearer ' + key,
+        'Content-Type': 'application/json',
+        'User-Agent': 'ImmigrantsHub/1.0'
+    }
+)
     try:
         with build_opener(NoRedirect()).open(req, timeout=35) as response:
             raw = response.read(200_001)

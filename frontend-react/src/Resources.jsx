@@ -102,10 +102,19 @@ function Resources() {
                 ))}
                 <small>AI-generated from this source. Check the original for important details.</small>
               </>
-            ) : (
-              <p role="status">{source.summary_error || 'No AI summary is available for this source.'}</p>
-            )}
+            ) : source.summary === null ? null : (
+                  <p role="status">
+                    {source.summary_error || 'No AI summary is available for this source.'}
+                  </p>
+                )}
           </div>
+          {source.summary && (
+            <button
+              type="button"
+              onClick={() => setSource({ ...source, summary: null })}
+            > Clear Summary
+            </button>
+          )}
           <button
             type="button"
             className="share-story-button"
